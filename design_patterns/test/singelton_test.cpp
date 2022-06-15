@@ -32,19 +32,28 @@ class B
 {
 private:
 	int m_x;
+	int m_y;
 public:
-	B(int x) : m_x{x} {};
+	B(int x, int y) : m_x{x}, m_y{y} {};
+
+	void Print() const
+	{
+		std::cout << "m_x: " << m_x << "\n";
+		std::cout << "m_y: " << m_y << "\n";
+	}
 };
 
 int main()
 {
-	A& single_A = Singelton<A>::Instance();
+	{
+		A& single_A = Singelton<A>::Instance();
 
-	A& second_A = Singelton<A>::Instance();
-	
-	single_A.Set(7);
-	single_A.Print();
-	second_A.Print();
+		A& second_A = Singelton<A>::Instance();
+		
+		single_A.Set(7);
+		single_A.Print();
+		second_A.Print();
+	}
 
 	return 0;
 }

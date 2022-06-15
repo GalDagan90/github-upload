@@ -16,7 +16,7 @@ TESTS = $(wildcard $(TEST)/*.cpp)
 LIB_NAME = despat
 
 TARGET_LIB = libdespat.so
-TARGET = singelton
+TARGET = logger
 
 .PHONY: all
 .PHONY: debug
