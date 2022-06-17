@@ -12,14 +12,16 @@
 namespace design_pattern
 {
 
-template <typename Object>
+template <typename T>
 class Singelton
 {
 public:
-	static Object& Instance()
+
+	template <typename... params>
+	static T& Instance(params... paramsList)
 	{
-		std::call_once(Singelton<Object>::m_isCreated, 
-						[](){m_obj.reset(new Object);}
+		std::call_once(Singelton<T>::m_isCreated, 
+					[&paramsList...](){m_obj.reset(new T(paramsList...));}
 					);
 
 		return *m_obj;
@@ -32,14 +34,14 @@ private:
 	Singelton& operator=(const Singelton& other) = delete;
 
 	static std::once_flag m_isCreated;
-	static std::unique_ptr<Object> m_obj;
+	static std::unique_ptr<T> m_obj;
 };
 
-template <typename Object>
-std::once_flag Singelton<Object>::m_isCreated;
+template <typename T>
+std::once_flag Singelton<T>::m_isCreated;
 
-template <typename Object>
-std::unique_ptr<Object> Singelton<Object>::m_obj = nullptr; 
+template <typename T>
+std::unique_ptr<T> Singelton<T>::m_obj = nullptr; 
 
 } // namespace design_pattern
 
