@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -std=c++11 -pedantic-errors -Wall -Wextra -g
+CFLAGS = -std=c++14 -pedantic-errors -Wall -Wextra -g
 PICFLAG = -fPIC
 LDFLAGS = -shared
 DBGFLAG = -DNDBUG
@@ -16,7 +16,7 @@ TESTS = $(wildcard $(TEST)/*.cpp)
 LIB_NAME = despat
 
 TARGET_LIB = libdespat.so
-TARGET = logger
+TARGET = thread_safe_queue
 
 .PHONY: all
 .PHONY: debug

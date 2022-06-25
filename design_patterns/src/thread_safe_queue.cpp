@@ -10,7 +10,7 @@
 
 #include "thread_safe_queue.hpp"
 
-namespace ilrd_5678
+namespace design_pattern
 {
 
 /******************************************************************************
