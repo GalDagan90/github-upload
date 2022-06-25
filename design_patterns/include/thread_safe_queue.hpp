@@ -34,7 +34,8 @@ public:
 	ThreadSafePQ(ThreadSafePQ&& other) = delete;
 	ThreadSafePQ& operator=(ThreadSafePQ&& other) = delete;
 
-	void Push(T&& data, Priority priority);
+	template <typename U>
+	void Push(U&& data, Priority priority);
 	T Pop();
 	bool Empty() const;
 
@@ -70,9 +71,10 @@ bool ThreadSafePQ<T>::Empty() const
 }
 
 template <typename T>
-void ThreadSafePQ<T>::Push(T&& data, Priority priority)
+template <typename U>
+void ThreadSafePQ<T>::Push(U&& data, Priority priority)
 {
-	Pair pq_pair = std::make_pair(std::forward<T>(data), priority);
+	Pair pq_pair = std::make_pair(std::forward<U>(data), priority);
 
 	UniqueLock lock{m_pqMutex};
 	m_pq.push(std::move(pq_pair));
