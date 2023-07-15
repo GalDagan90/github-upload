@@ -1,10 +1,10 @@
 CC = g++
-CFLAGS = -std=c++11 -pedantic-errors -Wall -Wextra -g
+CFLAGS = -std=c++20 -pedantic-errors -Wall -Wextra -g
 PICFLAG = -fPIC
 LDFLAGS = -shared
 DBGFLAG = -DNDBUG
 
-DIR = /home/user/git/modern_cpp
+DIR = /home/user/github/modern_cpp
 OBJ = $(DIR)/obj
 SRC = $(DIR)/src
 HDR = $(DIR)/include
@@ -16,7 +16,7 @@ TESTS = $(wildcard $(TEST)/*.cpp)
 LIB_NAME = proj
 
 TARGET_LIB = libproj.so
-TARGET = threadpool
+TARGET = typelist
 
 .PHONY: all
 .PHONY: debug
