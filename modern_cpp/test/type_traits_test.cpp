@@ -8,6 +8,7 @@
 *Lab : RD5678
 ****************************************************************************/
 #include <typeinfo>
+#include <string>
 #include "type_traits.hpp"
 
 using namespace ilrd_5678;
@@ -19,6 +20,10 @@ struct Base
 
 struct Derived : public Base
 {};
+
+struct S{
+	S() = delete;
+};
 
 template<typename T, typename... Ts>
 constexpr bool all_types_are_same = Conjunction_v<IsSame<T, Ts>...>;
@@ -51,8 +56,10 @@ int main()
 	static_assert(IsSame_v<Conditional_t<bool(10 > 6), int, float>, int>);
 	static_assert(IsSame_v<Conditional_t<bool(10 > 60), int, float>, int> == false);
 
-	static_assert(IsConvertiable_v<Derived, Base> == true);
-	static_assert(IsConvertiable_v<char, char*> == false);
+	static_assert(IsConvertible_v<Derived, Base> == true);
+	static_assert(IsConvertible_v<char, char*> == false);
+	static_assert(IsConvertible<int, std::string>::value == false);
+	static_assert(IsConvertible_v<char const*, std::string> == true);
 
 	static_assert(all_types_are_same<int, int>);
 	static_assert(!all_types_are_same<int, int&, int>);
@@ -63,6 +70,11 @@ int main()
 
 	static_assert(IsNullPtr<decltype(nullptr)>::value == true);
 	static_assert(IsNullPtr<int*>::value == false);
+
+	static_assert(IsDefaultConstructible<S>::value == false);
+	static_assert(IsDefaultConstructible_v<Base> == true);
+
+
 
 	return 0;
 }

@@ -90,6 +90,24 @@ int main()
 	 							  TypeList<char, int, float, char*, int*, bool>
 	 							>);
 
+
+	static_assert(std::is_same_v< Replace<char, char*, TypeList<char, float, int, bool>>::type,
+	 							  TypeList<char*, float, int, bool>
+	 							>);
+	static_assert(std::is_same_v< Replace_t<char, char*, TypeList<float, char, int, bool>>,
+	 							  TypeList<float, char*, int, bool>
+	 							>);
+	static_assert(std::is_same_v< Replace_t<char, char*, TypeList<float, char*, int, bool>>,
+	 							  TypeList<float, char*, int, bool>
+	 							>);
+	static_assert(std::is_same_v< Replace_All<char, char*, TypeList<char, float, char, int, bool>>::type,
+	 							  TypeList<char*, float, char*, int, bool>
+	 							>);
+	static_assert(std::is_same_v< Replace_All_t<char, char*, TypeList<float, char, char, int, bool>>,
+	 							  TypeList<float, char*, char*, int, bool>
+	 							>);
+
+
 	return 0;
 }
 

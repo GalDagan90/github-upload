@@ -246,6 +246,69 @@ template <typename LIST>
 using Remove_Dup_t = Remove_Dup<LIST>::type;
 
 
+//////////////////// Replace  //////////////////////////////////
+
+/* Replaces type U with T*/
+
+template <typename U, typename T, typename LIST>
+struct Replace;
+
+template<typename U, typename T>
+struct Replace<U, T, TypeList<>>
+{
+	using type = TypeList<>;
+};
+
+template <typename U, typename T, typename... T1toN>
+struct Replace<U, T, TypeList<U, T1toN...>>
+{
+	using type = TypeList<T, T1toN...>;
+};
+
+template <typename U, typename T, typename T0, typename... T1toN>
+struct Replace<U, T, TypeList<T0, T1toN...>>
+{
+private:
+	using ReplacedList = Replace<U, T, TypeList<T1toN...>>::type;
+public:
+	using type = Push_Front_t<T0, ReplacedList>;
+};
+
+template <typename U, typename T, typename LIST>
+using Replace_t = Replace<U, T, LIST>::type;
+
+//////////////////// Replace_All  //////////////////////////////////
+
+/* Replaces type U with T*/
+
+template <typename U, typename T, typename LIST>
+struct Replace_All;
+
+template<typename U, typename T>
+struct Replace_All<U, T, TypeList<>>
+{
+	using type = TypeList<>;
+};
+
+template <typename U, typename T, typename... T1toN>
+struct Replace_All<U, T, TypeList<U, T1toN...>>
+{
+	using type = Push_Front_t<T, typename Replace_All<U, T, TypeList<T1toN...>>::type >;
+};
+
+template <typename U, typename T, typename T0, typename... T1toN>
+struct Replace_All<U, T, TypeList<T0, T1toN...>>
+{
+private:
+	using ReplacedList = Replace_All<U, T, TypeList<T1toN...>>::type;
+public:
+	using type = Push_Front_t<T0, ReplacedList>;
+};
+
+template <typename U, typename T, typename LIST>
+using Replace_All_t = Replace_All<U, T, LIST>::type;
+
+
 } // namespace ilrd_5678
 
 

@@ -3,6 +3,7 @@
 #define __TYPE_TRAITS_H_RD5678_ILRD__
 
 #include <type_traits>
+#include <utility>
 
 namespace ilrd_5678
 {
@@ -136,21 +137,26 @@ template<typename...Ts>
 inline constexpr bool Conjunction_v = Conjunction<Ts...>::value;
 
 /******************************************************************************/
-/*								Is Convertiable								  */
+/*								Is Convertible								  */
 /******************************************************************************/
 template<typename From,typename To>
-struct IsConvertiable
+struct IsConvertible
 {
 private:
-	static void Test(...);
-	static To Test(To);
-	static From MakeFrom();
+	static void HelperFunc(To);
+
+	template<typename F, 
+			typename = decltype(HelperFunc(std::declval<F>()))>
+	static char Test(void*);
+	
+	template<typename>
+	static long Test(...);
 public:
-	enum {value = IsSame_v<decltype(Test(MakeFrom())), To> };
+	enum {value = IsSame_v<decltype(Test<From>(nullptr)), char> };
 };
 
 template<typename From,typename To>
-inline constexpr bool IsConvertiable_v = IsConvertiable<From, To>::value;
+inline constexpr bool IsConvertible_v = IsConvertible<From, To>::value;
 
 /******************************************************************************/
 /*								Is Null_ptr									  */
@@ -164,10 +170,27 @@ struct IsNullPtr
 template<typename T>
 inline constexpr bool IsNullPtr_v = IsNullPtr<T>::value;
 /******************************************************************************/
-/*																			  */
+/*								Is DefaultConstructible						  */
 /******************************************************************************/
 
+template<typename T>
+struct IsDefaultConstructible
+{
+private:
+	//Test() will accept a type that has a default constructor
+	//T_ is introduced because T is allready  deduced at this point
+	template<typename T_, typename = decltype( T_() )>
+	static char Test(void*);
 
+	//otherwise Test will default to this implementation
+	template<typename>
+	static long Test(...);
+public:
+	static constexpr bool value = IsSame_v< decltype(Test<T>(nullptr)), char>;
+};
+
+template<typename T>
+inline constexpr bool IsDefaultConstructible_v = IsDefaultConstructible<T>::value;
 
 } // namespace ilrd_5678
 
