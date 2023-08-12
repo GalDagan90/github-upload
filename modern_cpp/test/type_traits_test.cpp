@@ -75,6 +75,9 @@ int main()
 	static_assert(IsDefaultConstructible_v<Base> == true);
 
 
+	static_assert(IsClass<Base>::value == true);
+	static_assert(IsClass_v<Derived> == true);
+	static_assert(IsClass_v<const float> == false);
 
 	return 0;
 }

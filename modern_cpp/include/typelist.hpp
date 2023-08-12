@@ -127,6 +127,30 @@ struct Peek<TypeList<T0, T1toN...>>{
 template <typename LIST>
 using Peek_t = Peek<LIST>::type;
 
+////////////////////  Peek_Back //////////////////////////////////
+
+template<typename LIST>
+struct PeekBack;
+
+template<>
+struct PeekBack<TypeList<>>
+{
+	using type = nullptr_t;
+};
+
+template<typename T>
+struct PeekBack<TypeList<T>>
+{
+	using type = T;
+};
+
+template<typename LIST>
+struct PeekBack : PeekBack<Pop_Front_t<LIST>>
+{};
+
+template<typename LIST>
+using PeekBack_t = PeekBack<LIST>::type;
+
 //////////////////// At  //////////////////////////////////
 template <typename LIST, std::size_t IDX>
 struct At;
@@ -307,6 +331,29 @@ public:
 
 template <typename U, typename T, typename LIST>
 using Replace_All_t = Replace_All<U, T, LIST>::type;
+
+//////////////////// Reverse  //////////////////////////////////
+
+template<typename LIST>
+struct Reverse;
+
+template<>
+struct Reverse<TypeList<>>
+{
+	using type = TypeList<>;
+};
+
+template<typename T0, typename... T1toN>
+struct Reverse<TypeList<T0, T1toN...>>
+{
+private:
+	using ReverseList = Reverse<TypeList<T1toN...>>::type;
+public:
+	using type = Push_Back_t<T0, ReverseList>;
+};
+
+template<typename LIST>
+using Reverse_t = Reverse<LIST>::type;
 
 
 } // namespace ilrd_5678

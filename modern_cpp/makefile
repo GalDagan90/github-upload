@@ -16,7 +16,7 @@ TESTS = $(wildcard $(TEST)/*.cpp)
 LIB_NAME = proj
 
 TARGET_LIB = libproj.so
-TARGET = std_function
+TARGET = typelist
 
 .PHONY: all
 .PHONY: debug

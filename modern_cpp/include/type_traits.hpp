@@ -191,6 +191,20 @@ public:
 
 template<typename T>
 inline constexpr bool IsDefaultConstructible_v = IsDefaultConstructible<T>::value;
+/******************************************************************************/
+/*									Is Class								  */
+/******************************************************************************/
+
+template<typename T, typename = std::void_t<>>
+struct IsClass : std::false_type 
+{};
+
+//only class can have a pointer to member
+template<typename T>
+struct IsClass<T, std::void_t<int T::*>> : std::true_type{};
+
+template<typename T>
+inline constexpr bool IsClass_v = IsClass<T>::value;
 
 } // namespace ilrd_5678
 

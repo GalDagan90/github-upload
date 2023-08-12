@@ -108,6 +108,27 @@ int main()
 	 							>);
 
 
+	static_assert(std::is_same_v<Reverse<TypeList<char, float, char, int, bool>>::type,
+										TypeList<bool, int, char, float, char>
+								>);
+	static_assert(std::is_same_v<Reverse<TypeList<char>>::type,
+										TypeList<char>
+								>);
+	static_assert(std::is_same_v<Reverse_t<TypeList<char, char*>>,
+										TypeList<char*, char>
+								>);
+
+
+	static_assert(std::is_same_v<PeekBack<TypeList<char, float, char, int, bool>>::type,
+								bool
+								>);
+	static_assert(!std::is_same_v<PeekBack<TypeList<char, float>>::type,
+								const float
+								>);
+	static_assert(std::is_same_v<PeekBack_t<TypeList<char, float, int>>,
+								int
+								>);
+
 	return 0;
 }
 
