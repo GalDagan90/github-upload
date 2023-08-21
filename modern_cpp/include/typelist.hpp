@@ -18,8 +18,8 @@ struct TypeList{};
 template <typename LIST>
 struct Is_Empty : std::false_type{};
 
-template<>
-struct Is_Empty<TypeList<>> : std::true_type{};
+template<template<typename...> class List>
+struct Is_Empty<List<>> : std::true_type{};
 
 template <typename LIST>
 inline constexpr bool Is_Empty_v = Is_Empty<LIST>::value;
@@ -28,32 +28,32 @@ inline constexpr bool Is_Empty_v = Is_Empty<LIST>::value;
 template <typename LIST>
 struct ListSize;
 
-template<>
-struct ListSize<TypeList<>>
+template<template<typename...> class List>
+struct ListSize<List<>>
 {
 	enum { value = 0 };
 };
 
-template<typename T0, typename... T1toN>
-struct ListSize<TypeList<T0, T1toN...>>
+template<template<typename...> class List, typename T0, typename... T1toN>
+struct ListSize<List<T0, T1toN...>>
 {
-	enum { value = 1 + ListSize<TypeList<T1toN...>>::value };
+	enum { value = 1 + ListSize<List<T1toN...>>::value };
 };
 
 ///////////////////////// Is_All_same //////////////////////
 template <typename LIST>
 struct Is_All_Same;
 
-template <>
-struct Is_All_Same<TypeList<>> : std::false_type
+template <template<typename...> class List>
+struct Is_All_Same<List<>> : std::false_type
 {};
 
-template <typename T>
-struct Is_All_Same<TypeList<T>> : std::true_type
+template <template<typename...> class List, typename T>
+struct Is_All_Same<List<T>> : std::true_type
 {};
 
-template <typename T0, typename... T1toN>
-struct Is_All_Same<TypeList<T0, T1toN...>>
+template <template<typename...> class List, typename T0, typename... T1toN>
+struct Is_All_Same<List<T0, T1toN...>>
 {
 	enum { value = Conjunction_v<IsSame<T0, T1toN>...> };
 };
@@ -66,9 +66,10 @@ inline constexpr bool Is_All_Same_v = Is_All_Same<Ts...>::value;
 template <typename LIST>
 struct Pop_Front;
 
-template <typename T0, typename... T1toN>
-struct Pop_Front<TypeList<T0, T1toN...>>{
-	using type = TypeList<T1toN...>;
+template <template<typename...> class List, typename T0, typename... T1toN>
+struct Pop_Front<List<T0, T1toN...>>
+{
+	using type = List<T1toN...>;
 };
 
 template <typename LIST>
@@ -79,16 +80,16 @@ using Pop_Front_t = Pop_Front<LIST>::type;
 template <typename T, typename LIST>
 struct Push_Front;
 
-template<typename T>
-struct Push_Front<T, TypeList<>>
+template<template<typename...> class List, typename T>
+struct Push_Front<T, List<>>
 {
-	using type = TypeList<T>;
+	using type = List<T>;
 };
 
-template <typename T, typename... Ts>
-struct Push_Front<T, TypeList<Ts...>>
+template <template<typename...> class List, typename T, typename... Ts>
+struct Push_Front<T, List<Ts...>>
 {
-	using type = TypeList<T, Ts...>;
+	using type = List<T, Ts...>;
 };
 
 template <typename T, typename LIST>
@@ -99,17 +100,17 @@ using Push_Front_t = Push_Front<T, LIST>::type;
 template <typename T, typename LIST>
 struct Push_Back;
 
-template <typename T>
-struct Push_Back<T, TypeList<>>
+template <template<typename...> class List, typename T>
+struct Push_Back<T, List<>>
 {
-	using type = TypeList<T>;
+	using type = List<T>;
 };
 
-template <typename T, typename T0, typename... T1toN>
-struct Push_Back<T, TypeList<T0, T1toN...>>
+template <template<typename...> class List, typename T, typename T0, typename... T1toN>
+struct Push_Back<T, List<T0, T1toN...>>
 {
 private:
-	using TailList = Push_Back<T, TypeList<T1toN...>>::type;
+	using TailList = Push_Back<T, List<T1toN...>>::type;
 public:
 	using type = typename Push_Front<T0, TailList>::type;
 };
@@ -121,8 +122,8 @@ using Push_Back_t = Push_Back<T, LIST>::type;
 template <typename LIST>
 struct Peek;
 
-template <typename T0, typename... T1toN>
-struct Peek<TypeList<T0, T1toN...>>{
+template <template<typename...> class LIST ,typename T0, typename... T1toN>
+struct Peek<LIST<T0, T1toN...>>{
 	using type = T0;
 };
 
@@ -134,14 +135,14 @@ using Peek_t = Peek<LIST>::type;
 template<typename LIST>
 struct PeekBack;
 
-template<>
-struct PeekBack<TypeList<>>
+template<template<typename...> class List>
+struct PeekBack<List<>>
 {
 	using type = nullptr_t;
 };
 
-template<typename T>
-struct PeekBack<TypeList<T>>
+template<template<typename...> class List, typename T>
+struct PeekBack<List<T>>
 {
 	using type = T;
 };
@@ -173,8 +174,8 @@ using At_t = At<LIST, IDX>::type;
 template <typename LIST, typename SEARCH>
 struct Contains;
 
-template <typename SEARCH>
-struct Contains<TypeList<>, SEARCH> : std::false_type{};
+template <template<typename...> class List, typename SEARCH>
+struct Contains<List<>, SEARCH> : std::false_type{};
 
 template <typename LIST, typename SEARCH>
 struct Contains :
@@ -192,24 +193,24 @@ inline constexpr bool Contains_v = Contains<LIST, SEARCH>::value;
 template <typename U, typename LIST>
 struct Erase;
 
-template <typename U>
-struct Erase<U, TypeList<>>
+template <template<typename...> class List, typename U>
+struct Erase<U, List<>>
 {
-	using type = TypeList<>;
+	using type = List<>;
 };
 
-template <typename U, typename... T1toN>
-struct Erase<U, TypeList<U, T1toN...>>
+template <template<typename...> class List, typename U, typename... T1toN>
+struct Erase<U, List<U, T1toN...>>
 {
-	using type = Pop_Front_t<TypeList<U, T1toN...>>;
+	using type = Pop_Front_t<List<U, T1toN...>>;
 };
 
 
-template <typename U, typename T0, typename... T1toN>
-struct Erase<U, TypeList<T0, T1toN...>>
+template <template<typename...> class List, typename U, typename T0, typename... T1toN>
+struct Erase<U, List<T0, T1toN...>>
 {
 private:
-	using TailList = Erase<U, TypeList<T1toN...>>::type;
+	using TailList = Erase<U, List<T1toN...>>::type;
 public:
 	using type = Push_Front_t<T0, TailList>;
 };
@@ -222,26 +223,26 @@ using Erase_t = Erase<U, LIST>::type;
 template <typename U, typename LIST>
 struct Erase_All;
 
-template <typename U>
-struct Erase_All<U, TypeList<>>
+template <template<typename...> class List, typename U>
+struct Erase_All<U, List<>>
 {
-	using type = TypeList<>;
+	using type = List<>;
 };
 
-template <typename U, typename... T1toN>
-struct Erase_All<U, TypeList<U, T1toN...>>
+template <template<typename...> class List, typename U, typename... T1toN>
+struct Erase_All<U, List<U, T1toN...>>
 {
 private:
-	using TailList = Pop_Front_t<TypeList<U, T1toN...>>;
+	using TailList = Pop_Front_t<List<U, T1toN...>>;
 public:
 	using type = Erase_All<U, TailList>::type;
 };
 
-template <typename U, typename T0, typename... T1toN>
-struct Erase_All<U, TypeList<T0, T1toN...>>
+template <template<typename...> class List, typename U, typename T0, typename... T1toN>
+struct Erase_All<U, List<T0, T1toN...>>
 {
 private:
-	using TailList = Erase_All<U, TypeList<T1toN...>>::type;
+	using TailList = Erase_All<U, List<T1toN...>>::type;
 public:
 	using type = Push_Front_t<T0, TailList>;
 };
@@ -253,17 +254,17 @@ using Erase_All_t = Erase_All<U, LIST>::type;
 template <typename LIST>
 struct Remove_Dup;
 
-template<>
-struct Remove_Dup<TypeList<>>
+template<template<typename...> class List>
+struct Remove_Dup<List<>>
 {
-	using type = TypeList<>;
+	using type = List<>;
 };
 
-template <typename T0, typename... T1toN>
-struct Remove_Dup<TypeList<T0, T1toN...>>
+template <template<typename...> class List, typename T0, typename... T1toN>
+struct Remove_Dup<List<T0, T1toN...>>
 {
 private:
-	using NoDupList = Erase_All_t<T0, TypeList<T1toN...>>;
+	using NoDupList = Erase_All_t<T0, List<T1toN...>>;
 public:
 	using type = Push_Front_t<T0, typename Remove_Dup<NoDupList>::type>;
 };
@@ -279,23 +280,23 @@ using Remove_Dup_t = Remove_Dup<LIST>::type;
 template <typename U, typename T, typename LIST>
 struct Replace;
 
-template<typename U, typename T>
-struct Replace<U, T, TypeList<>>
+template<template<typename...> class List, typename U, typename T>
+struct Replace<U, T, List<>>
 {
-	using type = TypeList<>;
+	using type = List<>;
 };
 
-template <typename U, typename T, typename... T1toN>
-struct Replace<U, T, TypeList<U, T1toN...>>
+template <template<typename...> class List, typename U, typename T, typename... T1toN>
+struct Replace<U, T, List<U, T1toN...>>
 {
-	using type = TypeList<T, T1toN...>;
+	using type = List<T, T1toN...>;
 };
 
-template <typename U, typename T, typename T0, typename... T1toN>
-struct Replace<U, T, TypeList<T0, T1toN...>>
+template <template<typename...> class List, typename U, typename T, typename T0, typename... T1toN>
+struct Replace<U, T, List<T0, T1toN...>>
 {
 private:
-	using ReplacedList = Replace<U, T, TypeList<T1toN...>>::type;
+	using ReplacedList = Replace<U, T, List<T1toN...>>::type;
 public:
 	using type = Push_Front_t<T0, ReplacedList>;
 };
@@ -310,23 +311,23 @@ using Replace_t = Replace<U, T, LIST>::type;
 template <typename U, typename T, typename LIST>
 struct Replace_All;
 
-template<typename U, typename T>
-struct Replace_All<U, T, TypeList<>>
+template<template<typename...> class List, typename U, typename T>
+struct Replace_All<U, T, List<>>
 {
-	using type = TypeList<>;
+	using type = List<>;
 };
 
-template <typename U, typename T, typename... T1toN>
-struct Replace_All<U, T, TypeList<U, T1toN...>>
+template <template<typename...> class List, typename U, typename T, typename... T1toN>
+struct Replace_All<U, T, List<U, T1toN...>>
 {
-	using type = Push_Front_t<T, typename Replace_All<U, T, TypeList<T1toN...>>::type >;
+	using type = Push_Front_t<T, typename Replace_All<U, T, List<T1toN...>>::type >;
 };
 
-template <typename U, typename T, typename T0, typename... T1toN>
-struct Replace_All<U, T, TypeList<T0, T1toN...>>
+template <template<typename...> class List, typename U, typename T, typename T0, typename... T1toN>
+struct Replace_All<U, T, List<T0, T1toN...>>
 {
 private:
-	using ReplacedList = Replace_All<U, T, TypeList<T1toN...>>::type;
+	using ReplacedList = Replace_All<U, T, List<T1toN...>>::type;
 public:
 	using type = Push_Front_t<T0, ReplacedList>;
 };
@@ -339,17 +340,17 @@ using Replace_All_t = Replace_All<U, T, LIST>::type;
 template<typename LIST>
 struct Reverse;
 
-template<>
-struct Reverse<TypeList<>>
+template<template<typename...> class List>
+struct Reverse<List<>>
 {
-	using type = TypeList<>;
+	using type = List<>;
 };
 
-template<typename T0, typename... T1toN>
-struct Reverse<TypeList<T0, T1toN...>>
+template<template<typename...> class List, typename T0, typename... T1toN>
+struct Reverse<List<T0, T1toN...>>
 {
 private:
-	using ReverseList = Reverse<TypeList<T1toN...>>::type;
+	using ReverseList = Reverse<List<T1toN...>>::type;
 public:
 	using type = Push_Back_t<T0, ReverseList>;
 };
@@ -365,24 +366,24 @@ struct Transform;
 template<typename LIST, template<typename T> class MetaFunc>
 struct Transform<LIST, MetaFunc, true>
 {
-	using Type = LIST;
+	using type = LIST;
 };
 
 template<typename LIST, template<typename T> class MetaFunc>
 struct Transform<LIST, MetaFunc, false>
 {
 private:
-	using TransformedHeadType = typename MetaFunc<Peek_t<LIST>>::Type;
-	using TransformedTailList = Transform<Pop_Front_t<LIST>, MetaFunc>::Type;
+	using TransformedHeadType = typename MetaFunc<Peek_t<LIST>>::type;
+	using TransformedTailList = Transform<Pop_Front_t<LIST>, MetaFunc>::type;
 public:
-	using Type = Push_Front_t<TransformedHeadType, TransformedTailList>;
+	using type = Push_Front_t<TransformedHeadType, TransformedTailList>;
 };
 
 template<typename LIST, template<typename T> class MetaFunc>
-using Transform_t = Transform<LIST, MetaFunc>::Type;
+using Transform_t = Transform<LIST, MetaFunc>::type;
 
 
-
+///////////////////////////////////////////////////////////////////
 
 
 } // namespace ilrd_5678
