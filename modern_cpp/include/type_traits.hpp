@@ -76,7 +76,17 @@ struct RemoveConst<const T>
 
 template<typename T>
 using RemoveConst_t = typename RemoveConst<T>::type;
+/******************************************************************************/
+/*								Add Const									  */
+/******************************************************************************/
+template <typename T>
+struct AddConst
+{
+	using Type = const T;
+};
 
+template<typename T>
+using AddConst_t = typename AddConst<T>::Type;
 /******************************************************************************/
 /*								Remove Reference							  */
 /******************************************************************************/

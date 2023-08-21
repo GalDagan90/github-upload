@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "type_traits"
 #include "typelist.hpp"
 
 using namespace ilrd_5678;
@@ -128,6 +129,15 @@ int main()
 	static_assert(std::is_same_v<PeekBack_t<TypeList<char, float, int>>,
 								int
 								>);
+
+
+	static_assert(std::is_same_v<Transform<TypeList<char>, AddConst>::Type,
+				  TypeList<const char>
+				  >);
+	static_assert(std::is_same_v<Transform<TypeList<char, int, float>, AddConst>::Type,
+				  TypeList<const char, const int, const float>
+				  >);
+
 
 	return 0;
 }

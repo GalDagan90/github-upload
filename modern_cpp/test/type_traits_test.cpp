@@ -79,6 +79,9 @@ int main()
 	static_assert(IsClass_v<Derived> == true);
 	static_assert(IsClass_v<const float> == false);
 
+	static_assert(IsSame_v<AddConst_t<float>, const float>);
+	static_assert(IsSame_v<AddConst_t<const char>, const char>);
+
 	return 0;
 }
 

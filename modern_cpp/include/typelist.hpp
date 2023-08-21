@@ -21,6 +21,8 @@ struct Is_Empty : std::false_type{};
 template<>
 struct Is_Empty<TypeList<>> : std::true_type{};
 
+template <typename LIST>
+inline constexpr bool Is_Empty_v = Is_Empty<LIST>::value;
 ///////////////////////// Size /////////////////////////////
 
 template <typename LIST>
@@ -354,6 +356,33 @@ public:
 
 template<typename LIST>
 using Reverse_t = Reverse<LIST>::type;
+
+//////////////////// Transform  //////////////////////////////////
+template<typename LIST, template<typename T> class MetaFunc, 
+		bool Empty = Is_Empty<LIST>::value>
+struct Transform;
+
+template<typename LIST, template<typename T> class MetaFunc>
+struct Transform<LIST, MetaFunc, true>
+{
+	using Type = LIST;
+};
+
+template<typename LIST, template<typename T> class MetaFunc>
+struct Transform<LIST, MetaFunc, false>
+{
+private:
+	using TransformedHeadType = typename MetaFunc<Peek_t<LIST>>::Type;
+	using TransformedTailList = Transform<Pop_Front_t<LIST>, MetaFunc>::Type;
+public:
+	using Type = Push_Front_t<TransformedHeadType, TransformedTailList>;
+};
+
+template<typename LIST, template<typename T> class MetaFunc>
+using Transform_t = Transform<LIST, MetaFunc>::Type;
+
+
+
 
 
 } // namespace ilrd_5678
