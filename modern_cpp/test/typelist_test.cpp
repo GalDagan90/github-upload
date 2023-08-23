@@ -59,6 +59,17 @@ int main()
 								>);
 
 
+	static_assert(std::is_same_v< Pop_Back<TypeList<float>>::type,
+								TypeList<>
+								>);
+	static_assert(std::is_same_v< Pop_Back<TypeList<float, bool>>::type,
+								TypeList<float>
+								>);
+	static_assert(std::is_same_v< Pop_Back_t<TypeList<float, bool, int*>>,
+								TypeList<float, bool>
+								>);
+
+
 	static_assert(std::is_same_v<At<TypeList<int>, 0U>::type, int>);
 	static_assert(std::is_same_v<
 								 At<TypeList<double, int>, 0>::type, 
@@ -210,7 +221,6 @@ int main()
 	static_assert(std::is_same_v<At_t<decltype(tup14), 1>, const float>);
 	static_assert(std::is_same_v<At_t<decltype(tup14), 2>, const int>);
 	static_assert(std::is_same_v<At_t<decltype(tup14), 3>, char* const>);
-
 
 
 	return 0;

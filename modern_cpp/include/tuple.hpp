@@ -10,6 +10,8 @@
 #ifndef __TUPLE_H_RD5678_ILRD__
 #define __TUPLE_H_RD5678_ILRD__
 
+#include <type_traits>
+
 #include "typelist.hpp"
 
 namespace ilrd_5678
@@ -28,18 +30,18 @@ public:
 	Tuple() = default;
 	
 	template<typename U0, typename... U1toN>
-	explicit Tuple(U0&& head, U1toN&&... tail) : 
+	constexpr explicit Tuple(U0&& head, U1toN&&... tail) : 
 		m_head{std::forward<U0>(head)},
 		m_tail{std::forward<U1toN>(tail)...}
 	{}
 
 	template<typename U0, typename... U1toN>
-	Tuple(const Tuple<U0, U1toN...>& rhs) : 
-		m_head{rhs.GetHead()},
-		m_tail{rhs.GetTail()}
+	Tuple(const Tuple<U0, U1toN...>& other) : 
+		m_head{other.GetHead()},
+		m_tail{other.GetTail()}
 	{}
 
-	T0& GetHead() 
+	T0& GetHead()
 	{
 		return m_head;
 	}
@@ -69,14 +71,39 @@ private:
  ******************************************************************************/ 
 template<typename T0, typename... T1toN>
 Tuple(T0&& head, T1toN&&... tail) -> Tuple<std::unwrap_ref_decay_t<T0>, std::unwrap_ref_decay_t<T1toN>...>;
+
 /*******************************************************************************
  *									MakeTuple 
  ******************************************************************************/ 
 template<typename... Args>
 auto MakeTuple(Args&&... args)
 {
-	return Tuple<Args...>(std::forward<Args>(args)...);
+	return Tuple<std::unwrap_ref_decay_t<Args>...>(std::forward<Args>(args)...);
 }
+
+/*******************************************************************************
+ *								Forward Declarations 
+ ******************************************************************************/ 
+template <typename Tuple>
+constexpr bool IsEmpty(Tuple&&);
+
+template <typename Tuple>
+constexpr auto TupleSize(Tuple&&);
+
+template <typename Tuple, typename T>
+constexpr auto pushFront(const Tuple& tup, T t);
+
+template <typename Tuple>
+constexpr auto popFront(const Tuple& tup);
+
+template <typename Tuple>
+constexpr auto popBack(Tuple&& tup);
+
+template <typename Tuple, typename T>
+constexpr auto pushBack(Tuple&& tup, T t);
+
+template <typename Tuple>
+constexpr auto ReverseTuple(Tuple&& tup);
 
 /*******************************************************************************
  *										Get 
@@ -85,8 +112,8 @@ auto MakeTuple(Args&&... args)
 template<std::size_t Idx>
 struct GetImpl
 {
-	template<typename T0, typename... T1toN>
-	static decltype(auto) Front(const Tuple<T0, T1toN...>& tuple)
+	template<typename T>
+	constexpr static decltype(auto) Front(T&& tuple)
 	{
 		return GetImpl<Idx-1>::Front(tuple.GetTail());
 	}
@@ -95,28 +122,152 @@ struct GetImpl
 template<>
 struct GetImpl<0>
 {
-	template<typename T0, typename... T1toN>
-	static decltype(auto) Front(const Tuple<T0, T1toN...>& tuple)
+	template<typename T>
+	constexpr static decltype(auto) Front(T&& tuple)
 	{
 		return tuple.GetHead();
 	}
 };
 
 
-template<std::size_t Idx, typename... Types>
-decltype(auto) Get(const Tuple<Types...>& tuple)
+template<std::size_t Idx, typename Tuple>
+constexpr decltype(auto) Get(Tuple&& tuple)
 {
-	return GetImpl<Idx>::Front(tuple);
+	return GetImpl<Idx>::Front(std::forward<Tuple>(tuple));
+}
+
+/*******************************************************************************
+ *									Tuple Size 
+ ******************************************************************************/
+template<typename Tuple>
+struct Tuple_Size;
+
+template<typename... Types>
+struct Tuple_Size<Tuple<Types...>> : std::integral_constant<std::size_t, sizeof...(Types)>
+{};
+
+template<typename Tuple>
+inline constexpr std::size_t Tuple_Size_v = Tuple_Size<Tuple>::value;
+
+/*******************************************************************************
+ *								Tuple Algorithms 
+ ******************************************************************************/
+
+////////////////////////////////////////////////////////////////////////////////
+
+namespace detail
+{
+
+template<std::size_t N, typename Seq> 
+struct Offset_Sequence;
+
+template<std::size_t N, std::size_t... Ints>
+struct Offset_Sequence<N, std::index_sequence<Ints...>>
+{
+	using type = std::index_sequence<Ints + N...>;
+};
+
+template<std::size_t N, typename Seq>
+using Offset_Sequence_t = typename Offset_Sequence<N, Seq>::type;
+
+template <typename Tuple, std::size_t... Is>
+constexpr auto popFrontImpl(Tuple&& tup, std::index_sequence<Is...>)
+{
+	return MakeTuple(Get<Is>(std::forward<Tuple>(tup))...);
 }
 
 
+template <typename Tuple, std::size_t... Is>
+constexpr auto popBackImpl(Tuple&& tup, std::index_sequence<Is...>)
+{
+	return MakeTuple(Get<Is>(std::forward<Tuple>(tup))...);
+}
+
+template <typename Tuple, std::size_t... Is>
+constexpr auto ReverseTupleImpl(Tuple&& tup, std::index_sequence<Is...>)
+{
+	return MakeTuple(Get<sizeof...(Is) - Is - 1>(std::forward<Tuple>(tup))...);
+}
 
 
+struct Tuple_Cat_Impl
+{
+	template<typename Tuple1, typename Tuple2>
+	static auto apply(Tuple1&& tup1, Tuple2&& tup2)
+	{
+		return Cat_From_indices(std::forward<Tuple1>(tup1),
+								std::forward<Tuple2>(tup2),
+								std::make_index_sequence<Tuple_Size_v<std::remove_cvref_t<Tuple1>>>{},
+								std::make_index_sequence<Tuple_Size_v<std::remove_cvref_t<Tuple2>>>{});
+	}
 
-//Get<1>(t)
+	template<typename Tuple1, typename Tuple2, std::size_t... Is1, std::size_t... Is2>
+	static auto Cat_From_indices(Tuple1&& tup1, Tuple2&& tup2, std::index_sequence<Is1...>, std::index_sequence<Is2...>)
+	{
+		return Tuple(Get<Is1>(std::forward<Tuple1>(tup1))... , Get<Is2>(std::forward<Tuple2>(tup2))...);
+	}
+};
 
+}//namespace detail
 
+/////////////////////////////////////////////////////////////////////////////
 
+template <typename Tuple>
+constexpr bool IsEmpty(Tuple&&)
+{
+	return Tuple_Size_v<std::remove_cvref_t<Tuple>> == 0;
+}
+
+template <typename Tuple>
+constexpr auto TupleSize(Tuple&&)
+{
+	return Tuple_Size_v<std::remove_cvref_t<Tuple>>;
+}
+
+template <typename Tuple, typename T>
+constexpr auto pushFront(const Tuple& tup, T t)
+{
+	return Push_Front_t<T, Tuple>(t, tup);
+}
+
+template <typename Tuple>
+constexpr auto popFront(Tuple&& tup)
+{
+	constexpr auto Size = Tuple_Size_v<std::remove_cvref_t<Tuple>>;
+	using indices = detail::Offset_Sequence_t<1, std::make_index_sequence<Size - 1>>;
+
+	return detail::popFrontImpl(std::forward<Tuple>(tup), indices{});
+}
+
+template <typename Tuple>
+constexpr auto popBack(Tuple&& tup)
+{
+	constexpr auto Size = Tuple_Size_v<std::remove_cvref_t<Tuple>>;
+	using indices = std::make_index_sequence<Size - 1>;
+
+	return detail::popBackImpl(std::forward<Tuple>(tup), indices{});
+}
+
+template <typename Tuple, typename T>
+constexpr auto pushBack(Tuple&& tup, T t)
+{
+	//use tuple_cat
+}
+
+template <typename Tuple>
+constexpr auto ReverseTuple(Tuple&& tup)
+{
+	constexpr auto Size = Tuple_Size_v<std::remove_cvref_t<Tuple>>;
+	using indices = std::make_index_sequence<Size>;
+
+	return detail::ReverseTupleImpl(std::forward<std::remove_const_t<Tuple>>(tup), indices{});
+}
+
+template <typename... Tuples>
+constexpr auto TupleCat(Tuples&&... tup)
+{
+	return detail::Tuple_Cat_Impl::apply(std::forward<Tuples>(tup)...);
+}
 
 } // namespace ilrd_5678
 

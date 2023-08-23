@@ -9,6 +9,9 @@
 ****************************************************************************/
 #include <iostream>
 #include <string>
+#include <tuple>
+#include <cassert>
+#include <cstring>
 
 #include "tuple.hpp"
 
@@ -16,24 +19,72 @@ using namespace ilrd_5678;
 
 #define UNUSED(x) (void)(x)
 
+// pretty-print a tuple
+template<class Ch, class Tr, class Tuple, std::size_t... Is>
+void print_tuple_impl(std::basic_ostream<Ch,Tr>& os,
+                      const Tuple& t,
+                      std::index_sequence<Is...>)
+{
+    ((os << (Is == 0? "" : ", ") << std::get<Is>(t)), ...);
+}
+ 
+template<class Ch, class Tr, class... Args>
+auto& operator<<(std::basic_ostream<Ch, Tr>& os,
+                 const std::tuple<Args...>& t)
+{
+    os << "(";
+    print_tuple_impl(os, t, std::index_sequence_for<Args...>{});
+    return os << ")";
+}
+
 int main()
 {
-	const Tuple<int, float, std::string> tp{5, 2.3f, "Gal"};
-	auto v = tp.GetHead();
-	std::cout << v << "\n";
+	const Tuple<int, float, std::string> tup1{32, 87.5f, "Gal"};
+	assert(Get<0>(tup1) == 32);
+	assert(Get<1>(tup1) == 87.5f);
+	assert(TupleSize(tup1) == 3);
+	assert(IsEmpty(tup1) == false);
 
-	auto tp2 = MakeTuple("Rachel", 1996, 5.5f, 4.2);
-	auto sub_tp2 = tp2.GetTail();
-	auto head_sub_tp2 = sub_tp2.GetHead();
-	std::cout << head_sub_tp2 << "\n";
 
-	std::cout << std::boolalpha;
-	std::cout << (Get<1>(tp) == 2.3f) << "\n";
-	auto s = Get<0>(tp2);
-	std::cout << s << "\n";
+	auto tup2 = MakeTuple(27, 94.1f, "Rachel", true);
+	assert(Get<0>(tup2) == 27);
+	assert(Get<3>(tup2) == true);
+	assert(TupleSize(tup2) == 4);
+	assert(IsEmpty(tup2) == false);
 
-	auto temp = Get<3>(Tuple{0, "Gal", 32.7f, "Potato", 27.2f});
-	std::cout << temp << "\n";
+
+	assert(Get<1>(Tuple{4.5, 'G', "Hello", 42, true}) == 'G');
+
+
+	auto tup3 = pushFront(tup2, 'L');
+	assert(Get<0>(tup3) == 'L');
+	assert(Get<1>(tup3) == 27);
+
+	auto tup4 = popFront(tup2);
+	assert(Get<0>(tup4) == 94.1f);
+	assert(strcmp(Get<1>(tup4), "Rachel") == 0);
+
+	auto tup5 = popBack(tup2);
+	assert(TupleSize(tup5) == 3);
+	assert(Get<0>(tup5) == 27);
+	assert(strcmp(Get<2>(tup5), "Rachel") == 0);
+
+	auto tup6 = ReverseTuple(tup2);
+	assert(TupleSize(tup6) == 4);
+	assert(Get<0>(tup6) == true);
+	assert(Get<3>(tup6) == 27);	
+
+	assert('G' == Get<0>(popFront(Tuple{4.5, 'G', "Hello", 42, true})));
+	assert(4.5 == Get<4>(ReverseTuple(Tuple{4.5, 'G', "Hello", 42, true})));
+
+	auto tup1_2 = TupleCat(tup1, tup2);
+	assert(TupleSize(tup1_2) == 3 + 4);
+	assert(Get<0>(tup1_2) == 32);
+	assert(Get<3>(tup1_2) == 27);
+	assert(Get<6>(tup1_2) == true);
+	
+	//std::tuple realTup('a', "Potato", true, 42);
+	//std::cout << realTup << "\n";
 
 
 	return 0;

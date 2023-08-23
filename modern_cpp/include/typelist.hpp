@@ -154,6 +154,36 @@ struct PeekBack : PeekBack<Pop_Front_t<LIST>>
 template<typename LIST>
 using PeekBack_t = PeekBack<LIST>::type;
 
+////////////////////  Pop_Back //////////////////////////////////
+
+template <typename LIST>
+struct Pop_Back;
+
+template <template<typename...> class List>
+struct Pop_Back<List<>>
+{
+	using type = List<>;
+};
+
+template <template<typename...> class List, typename T0>
+struct Pop_Back<List<T0>>
+{
+	using type = List<>;
+};
+
+template <template<typename...> class List, typename... Ts>
+struct Pop_Back<List<Ts...>>
+{
+private:
+	using Front_t = Peek_t<List<Ts...>>;
+	using TailList = Pop_Back<Pop_Front_t<List<Ts...>>>::type;
+public:
+	using type = Push_Front_t<Front_t, TailList>;
+};
+
+template <typename LIST>
+using Pop_Back_t = Pop_Back<LIST>::type;
+
 //////////////////// At  //////////////////////////////////
 template <typename LIST, std::size_t IDX>
 struct At;
