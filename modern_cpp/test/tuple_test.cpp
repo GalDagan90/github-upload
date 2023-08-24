@@ -69,10 +69,15 @@ int main()
 	assert(Get<0>(tup5) == 27);
 	assert(strcmp(Get<2>(tup5), "Rachel") == 0);
 
-	auto tup6 = ReverseTuple(tup2);
-	assert(TupleSize(tup6) == 4);
-	assert(Get<0>(tup6) == true);
-	assert(Get<3>(tup6) == 27);	
+	auto tup6 = pushBack(tup2, 'A');
+	assert(TupleSize(tup6) == 5);
+	assert(Get<0>(tup6) == 27);
+	assert(Get<4>(tup6) == 'A');
+
+	auto tup7 = ReverseTuple(tup2);
+	assert(TupleSize(tup7) == 4);
+	assert(Get<0>(tup7) == true);
+	assert(Get<3>(tup7) == 27);	
 
 	assert('G' == Get<0>(popFront(Tuple{4.5, 'G', "Hello", 42, true})));
 	assert(4.5 == Get<4>(ReverseTuple(Tuple{4.5, 'G', "Hello", 42, true})));
@@ -82,9 +87,10 @@ int main()
 	assert(Get<0>(tup1_2) == 32);
 	assert(Get<3>(tup1_2) == 27);
 	assert(Get<6>(tup1_2) == true);
-	
-	//std::tuple realTup('a', "Potato", true, 42);
-	//std::cout << realTup << "\n";
+
+
+	std::cout << tup1 << "\n";
+	std::cout << Tuple{4.5, 'G', "Hello", 42, true} << "\n";
 
 
 	return 0;

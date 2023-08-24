@@ -10,6 +10,7 @@
 #ifndef __TUPLE_H_RD5678_ILRD__
 #define __TUPLE_H_RD5678_ILRD__
 
+#include <iostream>
 #include <type_traits>
 
 #include "typelist.hpp"
@@ -153,7 +154,7 @@ inline constexpr std::size_t Tuple_Size_v = Tuple_Size<Tuple>::value;
  *								Tuple Algorithms 
  ******************************************************************************/
 
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////// Detail Namespace ////////////////////////////
 
 namespace detail
 {
@@ -171,6 +172,12 @@ template<std::size_t N, typename Seq>
 using Offset_Sequence_t = typename Offset_Sequence<N, Seq>::type;
 
 template <typename Tuple, std::size_t... Is>
+constexpr auto select(Tuple&& tup, std::index_sequence<Is...>)
+{
+	return MakeTuple(Get<Is>(std::forward<Tuple>(tup))...);
+}
+/*
+template <typename Tuple, std::size_t... Is>
 constexpr auto popFrontImpl(Tuple&& tup, std::index_sequence<Is...>)
 {
 	return MakeTuple(Get<Is>(std::forward<Tuple>(tup))...);
@@ -182,7 +189,7 @@ constexpr auto popBackImpl(Tuple&& tup, std::index_sequence<Is...>)
 {
 	return MakeTuple(Get<Is>(std::forward<Tuple>(tup))...);
 }
-
+*/
 template <typename Tuple, std::size_t... Is>
 constexpr auto ReverseTupleImpl(Tuple&& tup, std::index_sequence<Is...>)
 {
@@ -225,9 +232,9 @@ constexpr auto TupleSize(Tuple&&)
 }
 
 template <typename Tuple, typename T>
-constexpr auto pushFront(const Tuple& tup, T t)
+constexpr auto pushFront(Tuple&& tup, T t)
 {
-	return Push_Front_t<T, Tuple>(t, tup);
+	return TupleCat(MakeTuple(t), std::forward<Tuple>(tup));
 }
 
 template <typename Tuple>
@@ -236,7 +243,7 @@ constexpr auto popFront(Tuple&& tup)
 	constexpr auto Size = Tuple_Size_v<std::remove_cvref_t<Tuple>>;
 	using indices = detail::Offset_Sequence_t<1, std::make_index_sequence<Size - 1>>;
 
-	return detail::popFrontImpl(std::forward<Tuple>(tup), indices{});
+	return detail::select(std::forward<Tuple>(tup), indices{});
 }
 
 template <typename Tuple>
@@ -245,13 +252,13 @@ constexpr auto popBack(Tuple&& tup)
 	constexpr auto Size = Tuple_Size_v<std::remove_cvref_t<Tuple>>;
 	using indices = std::make_index_sequence<Size - 1>;
 
-	return detail::popBackImpl(std::forward<Tuple>(tup), indices{});
+	return detail::select(std::forward<Tuple>(tup), indices{});
 }
 
 template <typename Tuple, typename T>
 constexpr auto pushBack(Tuple&& tup, T t)
 {
-	//use tuple_cat
+	return TupleCat(std::forward<Tuple>(tup), MakeTuple(t));
 }
 
 template <typename Tuple>
@@ -268,6 +275,33 @@ constexpr auto TupleCat(Tuples&&... tup)
 {
 	return detail::Tuple_Cat_Impl::apply(std::forward<Tuples>(tup)...);
 }
+
+/*******************************************************************************
+ *									Print Tuple 
+ ******************************************************************************/
+namespace detail
+{
+
+template<typename Ch, typename Tr, typename Tuple, size_t... Is>
+void printTupImpl(std::basic_ostream<Ch, Tr>& os, const Tuple& tup, std::index_sequence<Is...>)
+{
+	((os << (Is == 0 ? "" : ", ") << Get<Is>(tup)),...);
+}
+
+
+} // namespace Detail
+
+
+template<typename Ch, typename Tr, typename Tuple>
+auto& operator<<(std::basic_ostream<Ch, Tr>& os, const Tuple& tup)
+{
+	constexpr auto Size = Tuple_Size_v<std::remove_cvref_t<Tuple>>;
+	using indices = std::make_index_sequence<Size>;
+	detail::printTupImpl(os, tup, indices{});
+
+	return os;
+}
+
 
 } // namespace ilrd_5678
 
