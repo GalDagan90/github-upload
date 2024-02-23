@@ -40,7 +40,7 @@ public:
     void wait_and_pop_w_timeout(T& res, std::chrono::milliseconds time);
     std::shared_ptr<T> wait_and_pop_w_timeout(std::chrono::milliseconds time);
     
-    void try_pop(T& res);
+    bool try_pop(T& res);
     std::shared_ptr<T> try_pop();
 };
 
@@ -88,5 +88,50 @@ void ThreadSafeQueue<T, Q>::wait_and_pop(T& res)
     res = std::move(m_queue.front());
     m_queue.pop();
 }
+
+template <typename T, typename Q>
+std::shared_ptr<T> ThreadSafeQueue<T, Q>::wait_and_pop()
+{
+    std::unique_lock<std::mutex> lk(m_mutex);
+    m_cond_var.wait(lk, [this](){ return !m_queue.empty();});
+    auto res{std::make_shared<T>(std::move(m_q.front()))}
+    m_q.pop();
+
+    return res;
+}
+
+template <typename T, typename Q>
+bool ThreadSafeQueue<T, Q>::try_pop(T& res)
+{
+    std::lock_guard<std::mutex> lk(m_mutex);
+    
+    if (m_queue.empty())
+    {    
+        return false;
+    }
+
+    res = std::move(m_queue.front());
+    m_queue.pop();
+    
+    return true;
+}
+
+template <typename T, typename Q>
+std::shared_ptr<T> ThreadSafeQueue<T, Q>::try_pop()
+{
+    std::lock_guard<std::mutex> lk(m_mutex);
+    
+    if (m_queue.empty())
+    {    
+        return std::shared_ptr<T>();
+    }
+
+    auto res{std::make_shared<T>(std::move(m_queue.front()))};
+    m_queue.pop();
+    
+    return res;
+}
+
+
 
 #endif //"__GAL_DAGAN_PROJ_THREAD_SAFE_Q__"

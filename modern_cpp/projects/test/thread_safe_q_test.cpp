@@ -4,8 +4,12 @@
 #include <thread>
 #include <future>
 #include <cassert>
+#include <atomic>
 
 #include "thread_safe_q.hpp"
+
+
+std::atomic_bool m_IsRunning{true};
 
 struct ConcreteTask
 {
@@ -55,7 +59,6 @@ struct Consumer
             T pack_task;
             m_q.wait_and_pop(pack_task);
             pack_task();
-
         }
     }
 
@@ -81,7 +84,6 @@ int main()
     }
     
     //create one consumer
-    //Consumer<tasks_type> consumer{globalQ};
     std::thread consumer_thr{Consumer<tasks_type>{globalQ}};
 
     //join threads
@@ -89,6 +91,7 @@ int main()
     {
         it.join();
     }
+    
     consumer_thr.join();
 
 
