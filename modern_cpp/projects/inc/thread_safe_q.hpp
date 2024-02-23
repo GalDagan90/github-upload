@@ -30,6 +30,9 @@ public:
     std::size_t size() const;
     
     void push(T val);
+    
+    template<typename... Args>
+    void emplace_back(Args&&... args);
 
     void wait_and_pop(T& res);
     std::shared_ptr<T> wait_and_pop();
@@ -67,5 +70,23 @@ void ThreadSafeQueue<T, Q>::push(T val)
     m_cond_var.notify_one();
 }
 
+
+template <typename T, typename Q>
+template<typename... Args>
+void ThreadSafeQueue<T, Q>::emplace_back(Args&&... args)
+{
+    std::lock_guard<std::mutex> lk(m_mutex);
+    m_queue.emplace_back(std::forward<Args>(args)...);
+    m_cond_var.notify_one();
+}
+
+template <typename T, typename Q>
+void ThreadSafeQueue<T, Q>::wait_and_pop(T& res)
+{
+    std::unique_lock<std::mutex> lk(m_mutex);
+    m_cond_var.wait(lk, [this](){ return !m_queue.empty();});
+    res = std::move(m_queue.front());
+    m_queue.pop();
+}
 
 #endif //"__GAL_DAGAN_PROJ_THREAD_SAFE_Q__"
