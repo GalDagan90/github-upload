@@ -16,7 +16,7 @@ TESTS = $(wildcard $(TEST)/*.cpp)
 LIB_NAME = proj
 
 TARGET_LIB = libproj.so
-TARGET = thread_safe_q
+TARGET = state_machine
 
 .PHONY: all
 .PHONY: debug
