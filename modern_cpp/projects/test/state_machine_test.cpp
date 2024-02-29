@@ -6,18 +6,18 @@
 Test for simple close/open state machince
 */
 
-struct IEvent{};
-
 struct CloseEvent : public IEvent{};
 struct OpenEvent : public IEvent{};
 
 struct ClosedState;
 struct OpenState;
 
+using StateVariant = std::variant<ClosedState, OpenState>;
+using OptionalStateVariant = std::optional<StateVariant>;
 
 struct ClosedState
 {
-    OpenState Handle(const IEvent&) const;
+    OptionalStateVariant Handle(const IEvent&) const;
     
     void Print() const
     {
@@ -27,7 +27,7 @@ struct ClosedState
 
 struct OpenState
 {
-    ClosedState Handle(const IEvent&) const;
+    OptionalStateVariant Handle(const IEvent&) const;
     
     void Print() const
     {
@@ -35,13 +35,13 @@ struct OpenState
     }
 };
 
-OpenState ClosedState::Handle(const IEvent&) const
+OptionalStateVariant ClosedState::Handle(const IEvent&) const
 {
     std::cout << "Closed -> Open\n";
     return OpenState{};
 }
 
-ClosedState OpenState::Handle(const IEvent&) const
+OptionalStateVariant OpenState::Handle(const IEvent&) const
 {
     std::cout << "Open -> Closed\n";
     return ClosedState{};
@@ -56,9 +56,8 @@ int main()
 
     simple_door.HandleEvent(OpenEvent{});
     simple_door.HandleEvent(CloseEvent{});
-    //std::visit([](const auto state){ state->Print(); }, simple_door.GetState());
-
-    //simple_door.HandleEvent(OpenEvent{});
+    
+    //std::visit([](const auto state){ state.Print(); }, simple_door.GetState());
 
     return 0;
 }
