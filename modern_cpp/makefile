@@ -4,7 +4,7 @@ PICFLAG = -fPIC
 LDFLAGS = -shared
 DBGFLAG = -DNDBUG
 
-DIR = /home/user/github/modern_cpp
+DIR = /mnt/c/Users/gdag9/Documents/github-upload/modern_cpp
 OBJ = $(DIR)/obj
 SRC = $(DIR)/src
 HDR = $(DIR)/include
@@ -16,7 +16,7 @@ TESTS = $(wildcard $(TEST)/*.cpp)
 LIB_NAME = proj
 
 TARGET_LIB = libproj.so
-TARGET = function
+TARGET = threadsafe_queue
 
 .PHONY: all
 .PHONY: debug
