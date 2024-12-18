@@ -35,19 +35,20 @@ void TestQueue(ThreadsafeQueue<S>& queue, std::atomic<bool>& done) {
 void ConsumerThread(ThreadsafeQueue<S>& queue)
 {
     // Wait until the data is available in the queue
+
+    //testing with reference
     S result;
     if (queue.WaitForPop(result, std::chrono::milliseconds(100)))
         std::cout << "Consumer popped: " << result.m_i  << ", " << result.m_str << std::endl;
     else
         std::cout << "Consumer timed out" << std::endl;
 
-
+    //testing with pointer
     auto data = queue.WaitForPop(std::chrono::milliseconds(1000));
     if (data)
         std::cout << "Consumer popped: " << data->m_i  << ", " << data->m_str << std::endl;
     else
         std::cout << "Consumer timed out" << std::endl;
-    
 }
 
 
@@ -83,6 +84,8 @@ void TestSingleThread()
 
     S result;
     std::cout << (queue.TryPop(result) ? "Popped something" : "Queue is empty, nothing to pop") << "\n";
+    std::cout << (queue.TryPop() ? "Popped something" : "Queue is empty, nothing to pop") << "\n";
+    
 
     S s1(1, "Gal");
     queue.Push_Back(s1);
@@ -108,7 +111,8 @@ void TestSingleThread()
 int main() {
     // Create a thread-safe queue
     
-    //TestSingleThread();
+    TestSingleThread();
+    std::cout << "\n";
     TestingMultiThreads();
 
     return 0;
