@@ -10,6 +10,8 @@
 #ifndef __STD_FUNCTION_H_RD5678_ILRD__
 #define __STD_FUNCTION_H_RD5678_ILRD__
 
+#include <utility>
+
 namespace ilrd_5678
 {
 

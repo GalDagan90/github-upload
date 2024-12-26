@@ -16,7 +16,7 @@ TESTS = $(wildcard $(TEST)/*.cpp)
 LIB_NAME = proj
 
 TARGET_LIB = libproj.so
-TARGET = threadsafe_queue
+TARGET = task_wrapper
 
 .PHONY: all
 .PHONY: debug

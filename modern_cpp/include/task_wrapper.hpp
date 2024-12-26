@@ -5,42 +5,60 @@
 #include <any>
 #include <type_traits>
 
-class Itask
+class ITask
 {
-    virtual ~Itask(){}
-    virtual Itask* clone() const = 0;
+public:
+    virtual ~ITask(){}
+    virtual ITask* Clone() const = 0;
     virtual std::any Invoke() = 0;
 };
 
 template<typename Functor, typename... Args>
-class Task : public Itask
+class Task : public ITask
 {
 public:
-    Task(Functor&& f, Args&&.. args) :  m_task{std::forward<Functor>(f)}, 
-                                        m_args{std::forward<Args>(args)...}
+    template<typename FunctorFwd>
+    Task(FunctorFwd&& f, Args&&... args) :  m_task{std::forward<FunctorFwd>(f)}, 
+                                            m_args{std::forward<Args>(args)...}
     {
         //empty ctor;
     }
 
-private:
-    Functor m_task;
-    std::tuple<Args...> m_args;
-    using ReturnType = std::invoke_result_t<Functor>
-};
+    Task* Clone() const override
+    {
+        return new Task(*this);
+    }
 
-class TaskWrapper
-{
-public:
-    template<typename F, typename... Args>
-    TaskWrapper(F&& f, Args&&... args){
-        using Functor = std::decay_t<F>;
-        using ConcreteTaks = Task<Functor, Args...>;
-        m_taskObj = std::make_unique<ConcreteTaks>(std::forward<F>(f), std::forward<Args>(Args)...);
+    std::any Invoke() override
+    {
+        return nullptr;
     }
 
 
 private:
-    std::unique_ptr<Itask> m_taskObj;
+    Functor m_task;
+    std::tuple<Args...> m_args;
+    using ReturnType = std::invoke_result_t<Functor, Args...>;
+};
+
+
+
+class TaskWrapper
+{
+public:
+    TaskWrapper() = default;
+
+    template<typename F, typename... Args>
+    TaskWrapper(F&& f, Args&&... args)
+    {
+        using Functor = std::decay_t<F>;
+        using ConcreteTask = Task<Functor, Args...>;
+        m_taskObj = std::make_unique<ConcreteTask>(std::forward<F>(f), std::forward<Args>(args)...);
+    }
+
+
+private:
+    std::unique_ptr<ITask> m_taskObj;
 };
 
 

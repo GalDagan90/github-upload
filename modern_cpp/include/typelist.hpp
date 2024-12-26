@@ -3,6 +3,7 @@
 #define __TYPELIST_H_RD5678_ILRD__
 
 #include <type_traits>
+#include <cstddef>
 #include "type_traits.hpp"
 
 namespace ilrd_5678
