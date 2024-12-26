@@ -42,5 +42,9 @@ void TestCtor()
     S s;
     TaskWrapper t4(s, 2.5);
     std::cout << "Ctor Success Functor\n";
-
+    
+    TaskWrapper t5(t1);
+    std::cout << "Copy Ctor Success\n";
+    t5 = t2;
+    std::cout << "Copy Assignment Success\n";
 }

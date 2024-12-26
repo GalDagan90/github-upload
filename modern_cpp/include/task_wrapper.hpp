@@ -48,7 +48,9 @@ class TaskWrapper
 public:
     TaskWrapper() = default;
 
-    template<typename F, typename... Args>
+    //Forwarding Constructor
+    template<typename F, typename... Args,
+            typename = std::enable_if_t<std::is_invocable_v<F, Args...>>>
     TaskWrapper(F&& f, Args&&... args)
     {
         using Functor = std::decay_t<F>;
@@ -56,6 +58,23 @@ public:
         m_taskObj = std::make_unique<ConcreteTask>(std::forward<F>(f), std::forward<Args>(args)...);
     }
 
+    //Copy Constructor
+    TaskWrapper(const TaskWrapper& other)
+    {
+        if (other.m_taskObj != nullptr)
+            m_taskObj = std::unique_ptr<ITask>(other.m_taskObj->Clone());
+    }
+
+    //Copy assignment
+    TaskWrapper& operator=(const TaskWrapper& other)
+    {
+        if (this != &other)
+        {
+            TaskWrapper temp(other);
+            std::swap(temp.m_taskObj, this->m_taskObj);
+        }
+        return *this;
+    }
 
 private:
     std::unique_ptr<ITask> m_taskObj;
