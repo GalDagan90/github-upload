@@ -12,10 +12,14 @@ void Print(std::string_view s){
 }
 
 void TestCtor();
+void TestAssign();
+void TestInvoke();
 
 int main()
 {
-    TestCtor();
+    //TestCtor();
+    TestAssign();
+    //TestInvoke();
 
     return 0;
 }
@@ -42,9 +46,33 @@ void TestCtor()
     S s;
     TaskWrapper t4(s, 2.5);
     std::cout << "Ctor Success Functor\n";
-    
     TaskWrapper t5(t1);
     std::cout << "Copy Ctor Success\n";
     t5 = t2;
     std::cout << "Copy Assignment Success\n";
+}
+
+void TestAssign()
+{
+    TaskWrapper tw;
+    tw.AssignTask(Sum, 5, 15);
+    auto res = tw.Invoke();
+
+    if (res.has_value()){
+        std::cout << std::any_cast<int>(res) << std::endl;
+    }
+
+    tw.AssignTask(Print, "Gal");
+    tw.Invoke();
+}
+
+void TestInvoke()
+{
+    TaskWrapper t1(Sum, 5, 1);
+    auto res = t1.Invoke();
+
+    if (res.has_value()){
+        std::cout << "....\n";
+        std::cout << std::any_cast<int>(res) << std::endl;
+    }
 }

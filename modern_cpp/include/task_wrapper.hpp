@@ -4,6 +4,7 @@
 #include <memory>
 #include <any>
 #include <type_traits>
+#include <iostream>
 
 class ITask
 {
@@ -31,7 +32,7 @@ public:
 
     std::any Invoke() override
     {
-        return nullptr;
+        return InvokeImple(std::make_index_sequence<sizeof...(Args)>{});
     }
 
 
@@ -39,6 +40,20 @@ private:
     Functor m_task;
     std::tuple<Args...> m_args;
     using ReturnType = std::invoke_result_t<Functor, Args...>;
+
+    template<std::size_t... Indices>
+    std::any InvokeImple(std::index_sequence<Indices...>)
+    {
+        if constexpr (std::is_void_v<ReturnType>)
+        {
+            m_task(std::get<Indices>(m_args)...);
+            return {};
+        }
+        else
+        {
+            return m_task(std::get<Indices>(m_args)...);
+        }
+    }
 };
 
 
@@ -51,7 +66,7 @@ public:
     //Forwarding Constructor
     template<typename F, typename... Args,
             typename = std::enable_if_t<std::is_invocable_v<F, Args...>>>
-    TaskWrapper(F&& f, Args&&... args)
+    explicit TaskWrapper(F&& f, Args&&... args)
     {
         using Functor = std::decay_t<F>;
         using ConcreteTask = Task<Functor, Args...>;
@@ -62,7 +77,9 @@ public:
     TaskWrapper(const TaskWrapper& other)
     {
         if (other.m_taskObj != nullptr)
+        {
             m_taskObj = std::unique_ptr<ITask>(other.m_taskObj->Clone());
+        }
     }
 
     //Copy assignment
@@ -74,6 +91,23 @@ public:
             std::swap(temp.m_taskObj, this->m_taskObj);
         }
         return *this;
+    }
+
+    std::any Invoke()
+    {
+        if (!m_taskObj)
+            return {};
+
+        return m_taskObj->Invoke();
+    }
+
+    template<typename F, typename... Args>
+    void AssignTask(F&& f, Args&&... args)
+    {
+        using Functor = std::decay_t<F>;
+        using ConcreteTask = Task<Functor, Args...>;
+        std::unique_ptr<ITask> new_task = std::make_unique<ConcreteTask>(std::forward<F>(f), std::forward<Args>(args)...);
+        std::swap(m_taskObj, new_task);
     }
 
 private:
