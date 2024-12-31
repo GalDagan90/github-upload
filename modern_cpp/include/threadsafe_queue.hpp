@@ -45,8 +45,8 @@ public:
     ThreadsafeQueue(const ThreadsafeQueue& other) = delete;
     ThreadsafeQueue& operator=(const ThreadsafeQueue& other) = delete;
     
-    ThreadsafeQueue(ThreadsafeQueue&& other) = delete;
-    ThreadsafeQueue& operator=(ThreadsafeQueue&& other) = delete;
+    ThreadsafeQueue(ThreadsafeQueue&& other) = default;
+    ThreadsafeQueue& operator=(ThreadsafeQueue&& other) = default;
 
     bool IsEmpty();
 

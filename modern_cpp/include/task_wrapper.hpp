@@ -93,6 +93,20 @@ public:
         return *this;
     }
 
+    //Move Constructor
+    TaskWrapper(TaskWrapper&& other) noexcept : m_taskObj{std::move(other.m_taskObj)} {}
+
+    //Move assignment
+    TaskWrapper& operator=(TaskWrapper&& other) noexcept
+    {
+        if (this != &other)
+        {
+            m_taskObj = std::move(other.m_taskObj);
+        }
+        return *this;
+    }
+
+
     std::any Invoke()
     {
         if (!m_taskObj)

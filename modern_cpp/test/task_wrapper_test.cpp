@@ -17,8 +17,8 @@ void TestInvoke();
 
 int main()
 {
-    //TestCtor();
-    TestAssign();
+    TestCtor();
+    //TestAssign();
     //TestInvoke();
 
     return 0;
@@ -50,6 +50,11 @@ void TestCtor()
     std::cout << "Copy Ctor Success\n";
     t5 = t2;
     std::cout << "Copy Assignment Success\n";
+
+    TaskWrapper t6(std::move(t1));
+    std::cout << "Move Ctor Success\n";
+    t6 = std::move(t2);
+    std::cout << "Move Assignment Success\n";
 }
 
 void TestAssign()
@@ -65,6 +70,7 @@ void TestAssign()
     tw.AssignTask(Print, "Gal");
     tw.Invoke();
 }
+
 
 void TestInvoke()
 {
