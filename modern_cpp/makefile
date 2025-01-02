@@ -16,7 +16,7 @@ TESTS = $(wildcard $(TEST)/*.cpp)
 LIB_NAME = proj
 
 TARGET_LIB = libproj.so
-TARGET = task_wrapper
+TARGET = threadpool
 
 .PHONY: all
 .PHONY: debug
