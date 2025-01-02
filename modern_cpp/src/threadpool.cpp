@@ -1,6 +1,7 @@
 #include "threadpool.hpp"
 
-ThreadPool::ThreadPool() : m_done{false}, m_numThreads{std::thread::hardware_concurrency()}
+ThreadPool::ThreadPool() :  m_done{false}, m_paused{false}, m_numThreads{std::thread::hardware_concurrency()}, 
+                            m_barrier{static_cast<std::ptrdiff_t>(m_numThreads)} 
 {
     for (std::size_t i = 0; i < m_numThreads; ++i)
     {
@@ -29,6 +30,16 @@ std::future<std::any> ThreadPool::AddTask(TaskWrapper task)
     return result;
 }
 
+void ThreadPool::Pause()
+{
+    m_paused.store(true, std::memory_order_relaxed);
+}
+
+void ThreadPool::Resume()
+{
+    m_paused.store(true, std::memory_order_relaxed);
+    m_barrier.arrive_and_wait();
+}
 /***********************************************************************************************
                                           Private Methods
 ************************************************************************************************/
@@ -37,7 +48,12 @@ void ThreadPool::WorkerThread()
 {
     while (!m_done)
     {
-        auto currTask = m_workQueue.WaitForPop(std::chrono::milliseconds(100));
+        if (m_paused)
+        {
+            m_barrier.arrive_and_wait();
+        }
+
+        auto currTask = m_workQueue.WaitForPop(std::chrono::milliseconds(250));
         if (currTask)
         {
             (*currTask)();
