@@ -2,15 +2,51 @@
 
 int main()
 {
-    ThreadPool pool;
+    // Create a thread pool
+    ThreadPool threadPool;
+    std::vector<std::future<std::any>> futuresVec(100);
 
-    // Submit some tasks
-    auto future1 = pool.AddTask(TaskWrapper([](int a, int b) { return a + b; }, 5, 3));
-    auto future2 = pool.AddTask(TaskWrapper([](float r) { return 3.14f * r * r; }, 4));
+    for (int i = 0; i < 10; ++i) 
+    {
+        futuresVec[i] = 
+        threadPool.AddTask(TaskWrapper([i]()
+                        {
+                            std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Simulate work
+                            std::cout << "completed by thread: " << std::this_thread::get_id() << "\n";
+                            return i * i;
+                        }));
+    }
 
     // Get the results
-    std::cout << "Result 1: " << std::any_cast<int>(future1.get()) << std::endl;
-    std::cout << "Result 2: " << std::any_cast<float>(future2.get()) << std::endl;
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    for (int i = 0; i < 10; ++i) 
+    {
+        std::cout << "Result: " << std::any_cast<int>(futuresVec[i].get()) << std::endl;
+    }
+
+
+    // Reduce the number of threads in the thread pool
+    std::cout << "Reducing thread pool size to 2...\n";
+    threadPool.ChangeNumWorkinThreads(2);
+
+    for (int i = 0; i < 10; ++i) 
+    {
+        futuresVec[i] = 
+        threadPool.AddTask(TaskWrapper([i]()
+                        {
+                            std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Simulate work
+                            std::cout << "completed by thread: " << std::this_thread::get_id() << "\n";
+                            return i * i * i;
+                        }));
+    }
+
+  
+    // Get the results
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    for (int i = 0; i < 10; ++i) 
+    {
+        std::cout << "Result: " << std::any_cast<int>(futuresVec[i].get()) << std::endl;
+    }
 
     return 0;
 }
