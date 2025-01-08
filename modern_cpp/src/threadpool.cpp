@@ -16,6 +16,7 @@ struct ThreadPool::PauseTask
 private:
     ThreadPool& m_pool;
 };
+/***********************************************************************/
 
 struct ThreadPool::StopTask
 {
@@ -25,18 +26,17 @@ struct ThreadPool::StopTask
     {
         auto it = std::find_if(m_pool.m_threads.begin(), m_pool.m_threads.end(), 
                                 [current_thread_id = std::this_thread::get_id()](const auto& thread){
-                                    return thread->get_id() == current_thread_id;
+                                    return thread.get_id() == current_thread_id;
                                 });
             
         if (it != m_pool.m_threads.end()){
-            m_pool.m_deadThreadsQueue.Push_Back(*it);
+            it->request_stop();
         }
     }
 
 private:
     ThreadPool& m_pool;
 };
-
 /********************************************************************** */
 /*                          public methods                              */                        
 /********************************************************************** */
@@ -44,25 +44,23 @@ ThreadPool::ThreadPool() :  m_done{false}, m_paused{false}, m_stoped{false}, m_n
 {
     for (std::size_t i = 0; i < m_numThreads; ++i)
     {
-        auto shPtr = std::make_shared<std::thread>(&ThreadPool::WorkerThread, this);
-        m_threads.emplace_back(shPtr);
+        // Create a shared pointer to the jthread and start the worker thread
+        m_threads.emplace_back(
+            [this](std::stop_token stopToken) { this->WorkerThread(stopToken); }
+        );
     }
 }
 
 ThreadPool::~ThreadPool()
 {
     m_done = true;
-    for (auto threadPtr : m_threads)
-    {
-        if (threadPtr->joinable())
-            threadPtr->join();
-    }
 }
 
 
 std::future<std::any> ThreadPool::AddTask(TaskWrapper task)
 {
-    std::packaged_task<std::any()> packagedTask([task]() mutable { return task.Invoke(); });
+    auto invokeLambda = [task]() mutable { return task.Invoke();};
+    std::packaged_task<std::any()> packagedTask(invokeLambda);
     std::future<std::any> result = packagedTask.get_future();
     m_workQueue.Emplace_Back(std::move(packagedTask));
 
@@ -78,7 +76,7 @@ void ThreadPool::Pause()
     }
     
     VerifyPause();
-    m_paused.store(true, std::memory_order_release);
+    m_paused.store(true, std::memory_order_relaxed);
 }
 
 void ThreadPool::Resume()
@@ -112,9 +110,9 @@ bool ThreadPool::ChangeNumWorkinThreads(const unsigned int num)
                                           Private Methods
 ************************************************************************************************/
 
-void ThreadPool::WorkerThread()
+void ThreadPool::WorkerThread(std::stop_token stopToken)
 {
-    while (!m_done)
+    while (!m_done && !stopToken.stop_requested())
     {   
         auto currTask = m_workQueue.WaitForPop(std::chrono::milliseconds(250));
         if (currTask)
@@ -126,8 +124,7 @@ void ThreadPool::WorkerThread()
         {
             auto stopTask = m_workQueue.TryPop(); (std::chrono::milliseconds(250));
             (*stopTask)();
-            break;
-        }      
+        }     
     }
 }
 
@@ -145,14 +142,10 @@ void ThreadPool::ReduceThreadVecSize(const unsigned int num)
     m_stoped.store(true, std::memory_order_release);
     for (std::size_t i = m_numThreads; i > num; --i)
     {
-        TaskWrapper tw(StopTask(*this));
-        AddTask(tw);
+        TaskWrapper stopTask(StopTask(*this));
+        AddTask(stopTask);
 
         m_cond.notify_one();
-        
-        //waits pop blocks until the queue is occupied
-        auto threadToKill = m_deadThreadsQueue.WaitPop();
-        (*threadToKill)->join();
     }
     
     m_stoped.store(false, std::memory_order_release);
@@ -163,7 +156,8 @@ void ThreadPool::IncreaseThreadVecSize(const unsigned int num)
 {
     for(std::size_t i = m_numThreads; i < num; ++i)
     {
-        auto ShPtrToThrd = std::make_shared<std::thread>(&ThreadPool::WorkerThread, this);
-        m_threads.emplace_back(ShPtrToThrd);
+        m_threads.emplace_back(
+            [this](std::stop_token stopToken) { this->WorkerThread(stopToken); }
+        );
     }
 }

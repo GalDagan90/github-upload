@@ -2,11 +2,11 @@
 #define __THREADPOOL_GAL_D_90__
 
 #include <thread>                   //std::thread
-#include <future>                   //std::future, std::promise
-#include <barrier>
+#include <stop_token>               //std::stop_token
+#include <future>                   //std::future
 #include <semaphore>                //std::semaphore
 #include <condition_variable>       //std::condition_variable
-#include <mutex>
+#include <mutex>                    //std::mutex
 #include <vector>                   //std::vector
 #include <atomic>                   //std::atomic_bool
 #include <memory>                   //std::shared_ptr
@@ -25,8 +25,7 @@ private:
     std::condition_variable                             m_cond;
     std::mutex                                          m_mutex;
     ThreadsafeQueue<std::packaged_task<std::any()>>     m_workQueue;
-    ThreadsafeQueue<std::shared_ptr<std::thread>>       m_deadThreadsQueue;
-    std::vector<std::shared_ptr<std::thread>>           m_threads;
+    std::vector<std::jthread>                           m_threads;
 
 public:
     ThreadPool();
@@ -46,7 +45,7 @@ public:
 
 
 private:
-    void WorkerThread();
+    void WorkerThread(std::stop_token stopToken);
     void VerifyPause();
     void ReduceThreadVecSize(const unsigned int num);
     void IncreaseThreadVecSize(const unsigned int num);
