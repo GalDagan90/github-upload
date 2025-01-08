@@ -21,7 +21,6 @@ private:
     std::atomic_bool                                    m_paused;
     std::atomic_bool                                    m_stoped;
     std::size_t                                         m_numThreads;
-    std::optional<std::barrier<>>                       m_syncPoint;
     std::counting_semaphore<>                           m_countSem;
     std::condition_variable                             m_cond;
     std::mutex                                          m_mutex;
@@ -51,6 +50,9 @@ private:
     void VerifyPause();
     void ReduceThreadVecSize(const unsigned int num);
     void IncreaseThreadVecSize(const unsigned int num);
+
+    class PauseTask;
+	class StopTask;
 };
 
 
