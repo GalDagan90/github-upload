@@ -25,7 +25,7 @@ int main()
 
     // Reduce the number of threads in the thread pool
     std::cout << "Reducing thread pool size to 4...\n";
-    threadPool.ChangeNumWorkinThreads(4);
+    threadPool.ChangeNumWorkingThreads(4);
     std::this_thread::sleep_for(std::chrono::seconds(3));
     for (int i = 0; i < 10; ++i) 
     {
@@ -47,7 +47,7 @@ int main()
 
 
     std::cout << "Reducing thread pool size to 2...\n";
-    threadPool.ChangeNumWorkinThreads(2);
+    threadPool.ChangeNumWorkingThreads(2);
     std::this_thread::sleep_for(std::chrono::seconds(3));
     for (int i = 0; i < 10; ++i) 
     {
@@ -70,7 +70,7 @@ int main()
 
     
     std::cout << "Increase thread pool size to 10...\n";
-    threadPool.ChangeNumWorkinThreads(10);
+    threadPool.ChangeNumWorkingThreads(10);
     std::this_thread::sleep_for(std::chrono::seconds(3));
     for (int i = 0; i < 10; ++i) 
     {

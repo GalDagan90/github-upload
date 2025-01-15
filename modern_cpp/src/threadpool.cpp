@@ -56,7 +56,6 @@ ThreadPool::~ThreadPool()
     m_done = true;
 }
 
-
 std::future<std::any> ThreadPool::AddTask(TaskWrapper task)
 {
     auto invokeLambda = [task]() mutable { return task.Invoke();};
@@ -88,7 +87,7 @@ void ThreadPool::Resume()
     }
 }
 
-bool ThreadPool::ChangeNumWorkinThreads(const unsigned int num)
+bool ThreadPool::ChangeNumWorkingThreads(const unsigned int num)
 {
     if (num == 0 || num > std::thread::hardware_concurrency() || num == m_numThreads)
         return false;
@@ -122,7 +121,7 @@ void ThreadPool::WorkerThread(std::stop_token stopToken)
 
         if (m_stoped.load(std::memory_order_acquire))
         {
-            auto stopTask = m_workQueue.TryPop(); (std::chrono::milliseconds(250));
+            auto stopTask = m_workQueue.TryPop();
             (*stopTask)();
         }     
     }

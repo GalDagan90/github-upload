@@ -34,15 +34,18 @@ public:
     ThreadPool(const ThreadPool& other) = delete;
     ThreadPool& operator=(const ThreadPool& other) = delete;
     
-    ThreadPool(ThreadPool&& other) = delete;
-    ThreadPool& operator=(ThreadPool&& other) = delete;
-
-    bool ChangeNumWorkinThreads(const unsigned int num);
+    ThreadPool(ThreadPool&& other) noexcept = default;
+    ThreadPool& operator=(ThreadPool&& other) = default;
 
     std::future<std::any> AddTask(TaskWrapper task);
     void Pause();
     void Resume();
-
+    bool ChangeNumWorkingThreads(const unsigned int num);
+    
+    inline std::size_t GetNumWorkingThreads() const
+    {
+        return m_numThreads;
+    }
 
 private:
     void WorkerThread(std::stop_token stopToken);
@@ -51,7 +54,7 @@ private:
     void IncreaseThreadVecSize(const unsigned int num);
 
     class PauseTask;
-	class StopTask;
+    class StopTask;
 };
 
 
