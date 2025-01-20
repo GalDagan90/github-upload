@@ -41,6 +41,7 @@ public:
     void Pause();
     void Resume();
     bool ChangeNumWorkingThreads(const unsigned int num);
+    inline bool IsPaused() const { return m_paused; }
     
     inline std::size_t GetNumWorkingThreads() const
     {

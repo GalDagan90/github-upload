@@ -16,7 +16,7 @@ TESTS = $(wildcard $(TEST)/*.cpp)
 LIB_NAME = proj
 
 TARGET_LIB = libproj.so
-TARGET = threadpool
+TARGET = matrix
 
 .PHONY: all
 .PHONY: debug

@@ -68,14 +68,17 @@ std::future<std::any> ThreadPool::AddTask(TaskWrapper task)
 
 void ThreadPool::Pause()
 {
-    for (std::size_t i = 0; i < m_numThreads; ++i)
+    if (m_paused.load(std::memory_order_acquire) == false)
     {
-        TaskWrapper tw(PauseTask(*this));
-        AddTask(tw);
+        for (std::size_t i = 0; i < m_numThreads; ++i)
+        {
+            TaskWrapper tw(PauseTask(*this));
+            AddTask(tw);
+        }
+        
+        VerifyPause();
+        m_paused.store(true, std::memory_order_relaxed);
     }
-    
-    VerifyPause();
-    m_paused.store(true, std::memory_order_relaxed);
 }
 
 void ThreadPool::Resume()
