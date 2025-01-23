@@ -29,7 +29,6 @@ int main()
     return 0;
 }
 
-
 template<typename T>
 std::vector<std::vector<T>> generateRandomMatrix(std::size_t rows, std::size_t cols, T minValue, T maxValue)
 {
@@ -65,6 +64,7 @@ void PrintMatrix(std::size_t rows, std::size_t cols, const std::vector<std::vect
         }
         std::cout << "\n";
     }
+    std::cout << "\n";
 }
 
 template<typename T>
@@ -93,20 +93,18 @@ bool TestCtors()
     return true;
 }
 
-
 bool TestCopyCtors()
 {
-    auto vec2D = generateRandomMatrix<float>(125, 125, -100.0f, 100.0f);
+    auto vec2D = generateRandomMatrix<float>(125, 8, -10.0f, 10.0f);
     Matrix copyFrom(vec2D);
 
     Matrix copyTo(10, 10);
     copyTo = copyFrom;
-
+    
     assert(CompareVectors(copyTo.GetData(), copyFrom.GetData(), copyTo.GetNumRows(), copyTo.GetNumCols()));
 
     return true;
 }
-
 
 bool TestMoveCtors()
 {
@@ -143,7 +141,6 @@ bool TestArithmaticMethods()
     Mat1 += Mat2;
     std::cout << "Mat1 after addition: \n";
     PrintMatrix(Mat1.GetNumRows(), Mat1.GetNumCols(), Mat1.GetData());
-
 
     return true;
 }

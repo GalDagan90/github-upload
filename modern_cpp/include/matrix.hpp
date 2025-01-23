@@ -48,13 +48,10 @@ public:
 
     template<typename U>
     requires std::is_convertible_v<U, T>
-    Matrix& operator+=(const Matrix<U>& lhs);
+    Matrix& operator+=(const Matrix<U>& rhs);
     
-    Matrix& operator-=(const Matrix& lhs);
-    Matrix& operator*=(const Matrix& lhs);
-    //friend Matrix operator+<>(const Matrix& lhs, const Matrix& rhs);
-    //friend Matrix operator-<>(const Matrix& lhs, const Matrix& rhs);
-    //friend Matrix operator*<>(const Matrix& lhs, const Matrix& rhs);
+    Matrix& operator-=(const Matrix& rhs);
+    Matrix& operator*=(const Matrix& rhs);
     
     template<typename Scalar>
     requires std::is_convertible_v<Scalar, T>
@@ -72,10 +69,6 @@ public:
     requires std::is_convertible_v<Scalar, T>
     Matrix& operator/=(T scalar);
 
-    //friend Matrix operator+<>(const Matrix& lhs, T scalar);
-    //friend Matrix operator-<>(const Matrix& lhs, T scalar);
-    //friend Matrix operator*<>(const Matrix& lhs, T scalar);
-    //friend Matrix operator/<>(const Matrix& lhs, T scalar);
 
     Matrix HadamardProduct(const Matrix& other) const;
 
@@ -86,8 +79,8 @@ public:
     std::vector<std::vector<T>> GetData() const { return m_data; }
 
 private:
-    template<typename Functor>
-    void parallelizeByRow(Functor&& functor);
+    template<typename Functor, typename...Args>
+    void parallelizeByRow(Args&&... functor);
 
     template<typename U>
     class CopyImplFunctor;
@@ -188,80 +181,62 @@ Matrix<T>& Matrix<T>::operator=(Matrix&& other)
 /********************************************************************************/
 template<typename T>
 template<typename U>
-class Matrix<T>::AdditionImplFunctor
-{
-public:
-    AdditionImplFunctor(Matrix<T>& matrix, const Matrix<U>& other, std::size_t startRow, std::size_t endRow)
-        : m_matrix(matrix), m_other(other), m_startRow(startRow), m_endRow(endRow) 
-    {}
-
-    void operator()() const 
-    {
-        if (m_startRow < m_endRow)
-        {
-            // Use ranges to iterate over the selected rows
-            auto range1 = m_matrix.m_data | std::ranges::views::drop(m_startRow) | std::ranges::views::take(m_endRow - m_startRow);
-            auto range2 = m_other.m_data  | std::ranges::views::drop(m_startRow) | std::ranges::views::take(m_endRow - m_startRow);
-
-            auto it1 = range1.begin();
-            auto it2 = range2.begin();
-
-            // Iterate through rows and apply std::transform for element-wise addition
-            for (; it1 != range1.end(); ++it1, ++it2) 
-            {
-                auto& row1 = *it1;
-                auto& row2 = *it2;
-                
-                // Use std::transform to add elements of row2 to row1
-                std::transform(row2.begin(), row2.end(), row1.begin(), row1.begin(),
-                    [&](const U& val2, T& val1) { return val1 + static_cast<T>(val2); });
-            }
-        }
-    }
-
-private:
-    Matrix<T>& m_matrix;        // Pointer to the target matrix
-    const Matrix<U>& m_other;   // Reference to the source matrix
-    std::size_t m_startRow;     // Start row index
-    std::size_t m_endRow;       // End row index
-};
-
-template<typename T>
-template<typename U>
 requires std::is_convertible_v<U, T>
-Matrix<T>& Matrix<T>::operator+=(const Matrix<U>& lhs)
+Matrix<T>& Matrix<T>::operator+=(const Matrix<U>& rhs)
 {
-    if (m_rows != lhs.GetNumRows() || m_cols != lhs.GetNumCols())
+    if (m_rows != rhs.GetNumRows() || m_cols != rhs.GetNumCols())
         return *this;
-
-    std::size_t numWorkingThreads = m_threadPool.GetNumWorkingThreads();
-    std::size_t rowsPerThread = (m_rows + numWorkingThreads - 1) / numWorkingThreads;
-
-    std::vector<std::future<std::any>> futureVec(numWorkingThreads);
-    m_threadPool.Resume();
-    for (size_t threadIdx = 0; threadIdx < numWorkingThreads; threadIdx++)
-    {
-        std::size_t startRow = threadIdx * rowsPerThread;
-        std::size_t endRow = std::min(startRow + rowsPerThread, m_rows);
-
-        TaskWrapper AdditionTask(AdditionImplFunctor(*this, lhs, startRow, endRow));
-        futureVec[threadIdx] = m_threadPool.AddTask(AdditionTask);
-    }
     
-    // Wait for all threads to finish
-    for (auto& future : futureVec) {
-        future.get();
-    }
+    parallelizeByRow<AdditionImplFunctor<U>>(this, rhs);
 
-    m_threadPool.Pause();
     return *this;
 }
 
 /********************************************************************************/
 /*                            Matrix Private Methods                            */
 /********************************************************************************/
+template<typename T>
+template<typename Functor, typename...Args>
+void Matrix<T>::parallelizeByRow(Args&&... args)
+{
+    std::size_t numWorkingThreads = m_threadPool.GetNumWorkingThreads();
+    std::size_t rowsPerThread = (m_rows + numWorkingThreads - 1) / numWorkingThreads;
+    std::vector<std::future<std::any>> futuresVec(numWorkingThreads);
+    m_threadPool.Resume();
 
-template<typename T> 
+    for (std::size_t threadIdx = 0; threadIdx < numWorkingThreads; ++threadIdx){
+        std::size_t startRow = threadIdx * rowsPerThread;
+        std::size_t endRow = std::min(startRow + rowsPerThread, m_rows);
+        
+        Functor functor{std::forward<Args>(args)..., startRow, endRow};
+        TaskWrapper taskWrapper(functor);
+        futuresVec[threadIdx] = m_threadPool.AddTask(taskWrapper);
+    }
+
+    // Wait for all threads to finish
+    for (auto& future : futuresVec) {
+        future.get();
+    }
+
+    m_threadPool.Pause();
+}
+
+template<typename T>
+template<typename U>
+void Matrix<T>::CopyImpl(const Matrix<U>& other)
+{
+    m_threadPool.ChangeNumWorkingThreads(other.m_threadPool.GetNumWorkingThreads());
+    m_rows = other.m_rows;
+    m_cols = other.m_cols;    
+    m_data.resize(m_rows);
+
+    parallelizeByRow<CopyImplFunctor<U>>(this, other);
+}
+
+/********************************************************************************/
+/*                            Matrix Task Functors Methods                      */
+/********************************************************************************/
+template<typename T>
 template<typename U>
 class Matrix<T>::CopyImplFunctor
 {
@@ -293,32 +268,42 @@ private:
 
 template<typename T>
 template<typename U>
-void Matrix<T>::CopyImpl(const Matrix<U>& other)
+class Matrix<T>::AdditionImplFunctor
 {
-    m_threadPool.ChangeNumWorkingThreads(other.m_threadPool.GetNumWorkingThreads());
-    m_rows = other.m_rows;
-    m_cols = other.m_cols;    
-    m_data.resize(m_rows);
+public:
+    AdditionImplFunctor(Matrix<T>* matrix, const Matrix<U>& other, std::size_t startRow, std::size_t endRow)
+        : m_matrix(matrix), m_other(other), m_startRow(startRow), m_endRow(endRow) 
+    {}
 
-    std::size_t numWorkingThreads = m_threadPool.GetNumWorkingThreads();
-    std::size_t rowsPerThread = (m_rows + numWorkingThreads - 1) / numWorkingThreads;
-    std::vector<std::future<std::any>> futuresVec(numWorkingThreads);
-    m_threadPool.Resume();
+    void operator()() const 
+    {
+        if (m_startRow < m_endRow)
+        {
+            // Use ranges to iterate over the selected rows
+            auto range1 = m_matrix->m_data | std::ranges::views::drop(m_startRow) | std::ranges::views::take(m_endRow - m_startRow);
+            auto range2 = m_other.m_data  | std::ranges::views::drop(m_startRow) | std::ranges::views::take(m_endRow - m_startRow);
 
-    for (std::size_t threadIdx = 0; threadIdx < numWorkingThreads; ++threadIdx){
-        std::size_t startRow = threadIdx * rowsPerThread;
-        std::size_t endRow = std::min(startRow + rowsPerThread, m_rows);
-        
-        TaskWrapper copyWrapper(CopyImplFunctor<U>(this, other, startRow, endRow));
-        futuresVec[threadIdx] = m_threadPool.AddTask(copyWrapper);
+            auto it1 = range1.begin();
+            auto it2 = range2.begin();
+
+            // Iterate through rows and apply std::transform for element-wise addition
+            for (; it1 != range1.end(); ++it1, ++it2) 
+            {
+                auto& row1 = *it1;
+                auto& row2 = *it2;
+                
+                // Use std::transform to add elements of row2 to row1
+                std::transform(row2.begin(), row2.end(), row1.begin(), row1.begin(),
+                    [&](const U& val2, T& val1) { return val1 + static_cast<T>(val2); });
+            }
+        }
     }
 
-    // Wait for all threads to finish
-    for (auto& future : futuresVec) {
-        future.get();
-    }
-
-    m_threadPool.Pause();
-}
+private:
+    Matrix<T>* m_matrix;        // Pointer to the target matrix
+    const Matrix<U>& m_other;   // Reference to the source matrix
+    std::size_t m_startRow;     // Start row index
+    std::size_t m_endRow;       // End row index
+};
 
 #endif //__MATRIX_GAL_D_90__
