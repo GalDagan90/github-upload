@@ -53,6 +53,7 @@ ThreadPool::ThreadPool() :  m_done{false}, m_paused{false}, m_stoped{false}, m_n
 
 ThreadPool::~ThreadPool()
 {
+    ReduceThreadVecSize(0);
     m_done = true;
 }
 
@@ -92,7 +93,7 @@ void ThreadPool::Resume()
 
 bool ThreadPool::ChangeNumWorkingThreads(const unsigned int num)
 {
-    if (num == 0 || num > std::thread::hardware_concurrency() || num == m_numThreads)
+    if (num > std::thread::hardware_concurrency() || num == m_numThreads)
         return false;
     
     if (num < m_numThreads)
