@@ -50,8 +50,13 @@ public:
     requires std::is_convertible_v<U, T>
     Matrix& operator+=(const Matrix<U>& rhs);
     
-    Matrix& operator-=(const Matrix& rhs);
-    Matrix& operator*=(const Matrix& rhs);
+    template<typename U>
+    requires std::is_convertible_v<U, T>
+    Matrix& operator-=(const Matrix<U>& rhs);
+
+    template<typename U>
+    requires std::is_convertible_v<U, T>
+    Matrix& operator*=(const Matrix<U>& rhs);
     
     template<typename Scalar>
     requires std::is_convertible_v<Scalar, T>
@@ -59,15 +64,15 @@ public:
 
     template<typename Scalar>
     requires std::is_convertible_v<Scalar, T>
-    Matrix& operator-=(T scalar);
+    Matrix& operator-=(Scalar scalar);
 
     template<typename Scalar>
     requires std::is_convertible_v<Scalar, T>
-    Matrix& operator*=(T scalar);
+    Matrix& operator*=(Scalar scalar);
 
     template<typename Scalar>
     requires std::is_convertible_v<Scalar, T>
-    Matrix& operator/=(T scalar);
+    Matrix& operator/=(Scalar scalar);
 
 
     Matrix HadamardProduct(const Matrix& other) const;
@@ -89,7 +94,7 @@ private:
     void CopyImpl(const Matrix<U>& other);
 
     template<typename U>
-    class AdditionImplFunctor;
+    class ArithmaticImplFunctor;
 };
 
 /********************************************************************************/
@@ -187,7 +192,39 @@ Matrix<T>& Matrix<T>::operator+=(const Matrix<U>& rhs)
     if (m_rows != rhs.GetNumRows() || m_cols != rhs.GetNumCols())
         return *this;
     
-    parallelizeByRow<AdditionImplFunctor<U>>(this, rhs);
+    //std::function<T(T,U)> 
+    auto add_op = [](T val1, U val2) { return val1 + static_cast<T>(val2); };
+    parallelizeByRow<ArithmaticImplFunctor<U>>(this, rhs, add_op);
+
+    return *this;
+}
+
+template<typename T>
+template<typename U>
+requires std::is_convertible_v<U, T>
+Matrix<T>& Matrix<T>::operator-=(const Matrix<U>& rhs)
+{
+    if (m_rows != rhs.GetNumRows() || m_cols != rhs.GetNumCols())
+        return *this;
+    
+    //std::function<T(T,U)> 
+    auto add_op = [](T val1, U val2) { return val1 - static_cast<T>(val2); };
+    parallelizeByRow<ArithmaticImplFunctor<U>>(this, rhs, add_op);
+
+    return *this;
+}
+
+template<typename T>
+template<typename U>
+requires std::is_convertible_v<U, T>
+Matrix<T>& Matrix<T>::operator*=(const Matrix<U>& rhs)
+{
+    if (m_rows != rhs.GetNumRows() || m_cols != rhs.GetNumCols())
+        return *this;
+    
+    //std::function<T(T,U)> 
+    auto add_op = [](T val1, U val2) { return val1 * static_cast<T>(val2); };
+    parallelizeByRow<ArithmaticImplFunctor<U>>(this, rhs, add_op);
 
     return *this;
 }
@@ -268,25 +305,25 @@ private:
 
 template<typename T>
 template<typename U>
-class Matrix<T>::AdditionImplFunctor
+class Matrix<T>::ArithmaticImplFunctor
 {
 public:
-    AdditionImplFunctor(Matrix<T>* matrix, const Matrix<U>& other, std::size_t startRow, std::size_t endRow)
-        : m_matrix(matrix), m_other(other), m_startRow(startRow), m_endRow(endRow) 
+    template<typename Callable>
+    ArithmaticImplFunctor(Matrix<T>* matrix, const Matrix<U>& other, Callable&& op, std::size_t startRow, std::size_t endRow)
+        : m_matrix(matrix), m_other(other), m_op(std::forward<Callable>(op)),m_startRow(startRow), m_endRow(endRow)
     {}
 
     void operator()() const 
     {
         if (m_startRow < m_endRow)
         {
-            // Use ranges to iterate over the selected rows
             auto range1 = m_matrix->m_data | std::ranges::views::drop(m_startRow) | std::ranges::views::take(m_endRow - m_startRow);
             auto range2 = m_other.m_data  | std::ranges::views::drop(m_startRow) | std::ranges::views::take(m_endRow - m_startRow);
 
             auto it1 = range1.begin();
             auto it2 = range2.begin();
 
-            // Iterate through rows and apply std::transform for element-wise addition
+            // Iterate through rows and apply std::transform for element-wise operation
             for (; it1 != range1.end(); ++it1, ++it2) 
             {
                 auto& row1 = *it1;
@@ -294,16 +331,18 @@ public:
                 
                 // Use std::transform to add elements of row2 to row1
                 std::transform(row2.begin(), row2.end(), row1.begin(), row1.begin(),
-                    [&](const U& val2, T& val1) { return val1 + static_cast<T>(val2); });
+                    [&](const U& val2, T& val1) { return m_op(val1, val2); });
             }
         }
     }
 
 private:
-    Matrix<T>* m_matrix;        // Pointer to the target matrix
-    const Matrix<U>& m_other;   // Reference to the source matrix
-    std::size_t m_startRow;     // Start row index
-    std::size_t m_endRow;       // End row index
+    Matrix<T>* m_matrix;
+    const Matrix<U>& m_other;   
+    std::function<T(T,U)> m_op;
+    std::size_t m_startRow;     
+    std::size_t m_endRow;       
 };
+
 
 #endif //__MATRIX_GAL_D_90__

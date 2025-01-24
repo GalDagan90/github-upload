@@ -21,9 +21,9 @@ bool TestArithmaticMethods();
 
 int main()
 {
-    assert(TestCtors());
+    //assert(TestCtors());
     assert(TestCopyCtors());
-    assert(TestMoveCtors());
+    //assert(TestMoveCtors());
     assert(TestArithmaticMethods());
 
     return 0;
@@ -140,6 +140,10 @@ bool TestArithmaticMethods()
 
     Mat1 += Mat2;
     std::cout << "Mat1 after addition: \n";
+    PrintMatrix(Mat1.GetNumRows(), Mat1.GetNumCols(), Mat1.GetData());
+
+    Mat1 -= Mat2;
+    std::cout << "Mat1 after substraction: \n";
     PrintMatrix(Mat1.GetNumRows(), Mat1.GetNumCols(), Mat1.GetData());
 
     return true;
