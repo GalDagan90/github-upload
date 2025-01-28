@@ -18,8 +18,8 @@ private:
     mutable ThreadPool m_threadPool;
 
 public:
-    Matrix(std::size_t rows, std::size_t cols);
-    Matrix(std::vector<std::vector<T>> data);
+    explicit Matrix(std::size_t rows, std::size_t cols);
+    explicit Matrix(std::vector<std::vector<T>> data);
 
     ~Matrix();
 
@@ -60,7 +60,7 @@ public:
     
     template<typename Scalar>
     requires std::is_convertible_v<Scalar, T>
-    Matrix& operator+=(Scalar scalar);
+    Matrix& operator+=(const Scalar scalar);
 
     template<typename Scalar>
     requires std::is_convertible_v<Scalar, T>
@@ -95,6 +95,9 @@ private:
 
     template<typename U>
     class ArithmaticImplFunctor;
+
+    template<typename Scalar>
+    class ArithmaticScalarImplFunctor;
 };
 
 /********************************************************************************/
@@ -214,21 +217,60 @@ Matrix<T>& Matrix<T>::operator-=(const Matrix<U>& rhs)
     return *this;
 }
 
+/*
 template<typename T>
 template<typename U>
 requires std::is_convertible_v<U, T>
 Matrix<T>& Matrix<T>::operator*=(const Matrix<U>& rhs)
+*/
+
+template<typename T>
+template<typename Scalar>
+requires std::is_convertible_v<Scalar, T>
+Matrix<T>& Matrix<T>::operator+=(Scalar scalar)
 {
-    if (m_rows != rhs.GetNumRows() || m_cols != rhs.GetNumCols())
-        return *this;
-    
-    //std::function<T(T,U)> 
-    auto add_op = [](T val1, U val2) { return val1 * static_cast<T>(val2); };
-    parallelizeByRow<ArithmaticImplFunctor<U>>(this, rhs, add_op);
+    auto add_scalar = [](T elem, Scalar scalarVal) { return elem + scalarVal; };
+    parallelizeByRow<ArithmaticScalarImplFunctor<Scalar>>(this, scalar, add_scalar);
 
     return *this;
 }
 
+template<typename T>
+template<typename Scalar>
+requires std::is_convertible_v<Scalar, T>
+Matrix<T>& Matrix<T>::operator-=(Scalar scalar)
+{
+    auto sub_scalar = [](T elem, Scalar scalarVal) { return elem - scalarVal; };
+    parallelizeByRow<ArithmaticScalarImplFunctor<Scalar>>(this, scalar, sub_scalar);
+
+    return *this;
+}
+
+template<typename T>
+template<typename Scalar>
+requires std::is_convertible_v<Scalar, T>
+Matrix<T>& Matrix<T>::operator*=(Scalar scalar)
+{
+    if (scalar != 1)
+    {
+        auto mult_scalar = [](T elem, Scalar scalarVal) { return elem * scalarVal; };
+        parallelizeByRow<ArithmaticScalarImplFunctor<Scalar>>(this, scalar, mult_scalar);
+    }
+    return *this;
+}
+
+template<typename T>
+template<typename Scalar>
+requires std::is_convertible_v<Scalar, T>
+Matrix<T>& Matrix<T>::operator/=(Scalar scalar)
+{
+    if (scalar != 0)
+    {
+        auto div_scalar = [](T elem, Scalar scalarVal) { return elem / scalarVal; };
+        parallelizeByRow<ArithmaticScalarImplFunctor<Scalar>>(this, scalar, div_scalar);
+    }
+    return *this;
+}
 /********************************************************************************/
 /*                            Matrix Private Methods                            */
 /********************************************************************************/
@@ -340,6 +382,40 @@ private:
     Matrix<T>* m_matrix;
     const Matrix<U>& m_other;   
     std::function<T(T,U)> m_op;
+    std::size_t m_startRow;     
+    std::size_t m_endRow;       
+};
+
+
+template<typename T>
+template<typename Scalar>
+class Matrix<T>::ArithmaticScalarImplFunctor
+{
+public:
+    template<typename Callable>
+    ArithmaticScalarImplFunctor(Matrix<T>* matrix, const Scalar& num, Callable&& op, std::size_t startRow, std::size_t endRow)
+        : m_matrix(matrix), m_scalrVal(num), m_op(std::forward<Callable>(op)),m_startRow(startRow), m_endRow(endRow)
+    {}
+
+    void operator()() const 
+    {
+        if (m_startRow < m_endRow)
+        {
+            auto range1 = m_matrix->m_data | std::ranges::views::drop(m_startRow) | std::ranges::views::take(m_endRow - m_startRow);
+            auto it1 = range1.begin();
+
+            for (; it1 != range1.end(); ++it1) 
+            {
+                auto& row = *it1;
+                std::transform(row.begin(), row.end(), row.begin(), [this](T& elem){ return m_op(elem, m_scalrVal); });
+            }
+        }
+    }
+
+private:
+    Matrix<T>* m_matrix;
+    const Scalar& m_scalrVal;   
+    std::function<T(T,Scalar)> m_op;
     std::size_t m_startRow;     
     std::size_t m_endRow;       
 };

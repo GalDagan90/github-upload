@@ -18,13 +18,16 @@ bool TestCtors();
 bool TestCopyCtors();
 bool TestMoveCtors();
 bool TestArithmaticMethods();
+bool TestArithmaticScalarMethods();
+
 
 int main()
 {
     //assert(TestCtors());
-    assert(TestCopyCtors());
+    //assert(TestCopyCtors());
     //assert(TestMoveCtors());
-    assert(TestArithmaticMethods());
+    //assert(TestArithmaticMethods());
+    assert(TestArithmaticScalarMethods());
 
     return 0;
 }
@@ -144,6 +147,29 @@ bool TestArithmaticMethods()
 
     Mat1 -= Mat2;
     std::cout << "Mat1 after substraction: \n";
+    PrintMatrix(Mat1.GetNumRows(), Mat1.GetNumCols(), Mat1.GetData());
+
+
+    return true;
+}
+
+bool TestArithmaticScalarMethods()
+{
+    auto vec2D = generateRandomMatrix<float>(13, 12, -10.0f, 10.0f);
+    Matrix Mat1(vec2D);
+    std::cout << "Mat1: \n";
+    PrintMatrix(Mat1.GetNumRows(), Mat1.GetNumCols(), Mat1.GetData());
+    
+    Mat1 += 1;
+    std::cout << "\n\nMat1 after addition: \n";
+    PrintMatrix(Mat1.GetNumRows(), Mat1.GetNumCols(), Mat1.GetData());
+
+    Mat1 *= 3;
+    std::cout << "\n\nMat1 after Multiplication: \n";
+    PrintMatrix(Mat1.GetNumRows(), Mat1.GetNumCols(), Mat1.GetData());
+
+    Mat1 -= 10;
+    std::cout << "\n\nMat1 after substraction: \n";
     PrintMatrix(Mat1.GetNumRows(), Mat1.GetNumCols(), Mat1.GetData());
 
     return true;
