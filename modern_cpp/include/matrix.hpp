@@ -5,6 +5,7 @@
 #include <optional>
 #include <ranges>
 #include <functional>
+#include <concepts>
 #include "threadpool.hpp"
 #include "task_wrapper.hpp"
 
@@ -74,14 +75,14 @@ public:
     requires std::is_convertible_v<Scalar, T>
     Matrix& operator/=(Scalar scalar);
 
-
-    Matrix HadamardProduct(const Matrix& other) const;
+    template<typename U>
+    Matrix HadamardProduct(const Matrix<U>& other) const;
 
     void Transpose();
     std::optional<T> Determinant() const;
     std::optional<Matrix> Inverse() const;
 
-    std::vector<std::vector<T>> GetData() const { return m_data; }
+    inline std::vector<std::vector<T>> GetData() const { return m_data; }
 
 private:
     template<typename Functor, typename...Args>
@@ -95,6 +96,9 @@ private:
 
     template<typename U>
     class ArithmaticImplFunctor;
+
+    template<typename U>
+    class ArithmaticMatrixMultiplyImplFunctor;
 
     template<typename Scalar>
     class ArithmaticScalarImplFunctor;
@@ -217,12 +221,21 @@ Matrix<T>& Matrix<T>::operator-=(const Matrix<U>& rhs)
     return *this;
 }
 
-/*
+
 template<typename T>
 template<typename U>
 requires std::is_convertible_v<U, T>
 Matrix<T>& Matrix<T>::operator*=(const Matrix<U>& rhs)
-*/
+{
+    if (m_cols !=  rhs.GetNumRows())
+        return *this;
+
+    Matrix<T> res(GetNumRows(), rhs.GetNumCols());
+    parallelizeByRow<ArithmaticMatrixMultiplyImplFunctor<U>>(&res, this, rhs);
+
+    *this = std::move(res);
+    return *this;
+}
 
 template<typename T>
 template<typename Scalar>
@@ -380,10 +393,48 @@ public:
 
 private:
     Matrix<T>* m_matrix;
-    const Matrix<U>& m_other;   
+    const Matrix<U>& m_other;
     std::function<T(T,U)> m_op;
-    std::size_t m_startRow;     
+    std::size_t m_startRow;
     std::size_t m_endRow;       
+};
+
+template<typename T>
+template<typename U>
+class Matrix<T>::ArithmaticMatrixMultiplyImplFunctor
+{
+public:
+    ArithmaticMatrixMultiplyImplFunctor(Matrix<T>* matrix, const Matrix<T>* mat1, const Matrix<U>& mat2, std::size_t startRow, std::size_t endRow)
+        : m_matrix(matrix), m_mat1(mat1), m_mat2(mat2),m_startRow(startRow), m_endRow(endRow)
+    {}
+
+    void operator()() const 
+    {
+        if (m_startRow < m_endRow)
+        {
+            std::size_t numColsA = m_mat1->GetNumCols();
+            std::size_t numColsB = m_mat2.GetNumCols();
+            
+            for (std::size_t rowInA = m_startRow; rowInA < m_endRow; ++rowInA)
+            {
+                for (std::size_t colInB = 0; colInB < numColsB; ++colInB)
+                {
+                    T sum = 0;
+                    for(std::size_t cellNum = 0; cellNum < numColsA; ++cellNum){
+                        sum += m_mat1->m_data[rowInA][cellNum] * m_mat2.m_data[cellNum][colInB];
+                    }
+                    m_matrix->m_data[rowInA][colInB] = sum;
+                }
+            }
+        }
+    }    
+
+private:
+    Matrix<T>* m_matrix;
+    const Matrix<T>* m_mat1;
+    const Matrix<U>& m_mat2;
+    std::size_t m_startRow;
+    std::size_t m_endRow;
 };
 
 
