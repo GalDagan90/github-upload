@@ -3,8 +3,27 @@
 !*.cpp
 !*.hpp
 !*.h
+!*.cs         
+!*.xaml
 !/**/
 !.gitignore
 !dummy.md
 !/**/makefile
 **/tests/*
+
+# Visual Studio / C# / WPF generated files
+[Bb]in/
+[Oo]bj/
+
+# Other common build output
+*.suo
+*.user
+*.vspscc
+*.vssscc
+*.dbmdl
+*.jfm
+*.pfx
+*.snk
+
+# For .NET Core / .NET 5+
+.vs/

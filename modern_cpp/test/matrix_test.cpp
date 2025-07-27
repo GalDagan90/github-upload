@@ -27,7 +27,7 @@ int main()
     //assert(TestCopyCtors());
     //assert(TestMoveCtors());
     assert(TestArithmaticMethods());
-    //assert(TestArithmaticScalarMethods());
+    assert(TestArithmaticScalarMethods());
 
     return 0;
 }
