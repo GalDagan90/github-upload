@@ -100,5 +100,68 @@ namespace TaskManagerApp.Tests
             Assert.AreEqual(initialTaskCount, viewModel.Tasks.Count, "Tasks collection should remain unchanged when no task is selected for deletion.");
             Assert.IsNull(viewModel.SelectedTask, "SelectedTask should remain null when no task is selected.");
         }
+
+        [TestMethod]
+        public void MainViewModel_ShouldChangeNewTaskTitle_WhenSet()
+        {
+            var viewModel = new MainViewModel();
+            string newTitle = "New Task Title";
+            viewModel.NewTaskTitle = newTitle;
+            Assert.AreEqual(newTitle, viewModel.NewTaskTitle, "NewTaskTitle should be set correctly.");
+        }
+
+        [TestMethod]
+        public void MainViewModel_ShouldChangeNewTaskDescription_WhenSet()
+        {
+            var viewModel = new MainViewModel();
+            string newDescription = "New Task Description";
+            viewModel.NewTaskDescription = newDescription;
+            Assert.AreEqual(newDescription, viewModel.NewTaskDescription, "NewTaskDescription should be set correctly.");
+        }
+
+        [TestMethod]
+        public void MainViewModel_ShouldChangeNewTaskDueDate_WhenSet()
+        {
+            var viewModel = new MainViewModel();
+            DateTime newDueDate = DateTime.Now.AddDays(5);
+            viewModel.NewTaskDueDate = newDueDate;
+            Assert.AreEqual(newDueDate, viewModel.NewTaskDueDate, "NewTaskDueDate should be set correctly.");
+        }
+        
+        [TestMethod]
+        public void MainViewModel_ShouldChangeNewTaskPriority_WhenSet()
+        {
+            var viewModel = new MainViewModel();
+            var newPriority = MyTaskPriority.High;
+            viewModel.NewTaskPriority = newPriority;
+            Assert.AreEqual(newPriority, viewModel.NewTaskPriority, "NewTaskPriority should be set correctly.");
+        }
+
+        [TestMethod]
+        public void MainViewModel_ShouldChangeNewTaskStatus_WhenSet()
+        {
+            var viewModel = new MainViewModel();
+            var newStatus = MyTaskStatus.InProgress;
+            viewModel.NewTaskStatus = newStatus;
+            Assert.AreEqual(newStatus, viewModel.NewTaskStatus, "NewTaskStatus should be set correctly.");
+        }
+
+        [TestMethod]
+        public void MainViewModel_ShouldAddNewTask_WhenAddTaskCommandExecuted()
+        {
+            var viewModel = new MainViewModel();
+            int initialTaskCount = viewModel.Tasks.Count;
+            
+            viewModel.NewTaskTitle = "New Task";
+            viewModel.NewTaskDescription = "New Task Description";
+            viewModel.NewTaskDueDate = DateTime.Now.AddDays(2);
+            viewModel.NewTaskPriority = MyTaskPriority.High;
+            viewModel.NewTaskStatus = MyTaskStatus.InProgress;
+
+            viewModel.AddTaskCommand.Execute(null);
+            Assert.AreEqual(initialTaskCount + 1, viewModel.Tasks.Count, "Tasks collection should have one more task after adding a new task.");
+            Assert.AreEqual("New Task", viewModel.Tasks.Last().Title, "The last task in the collection should be the newly added task.");
+        }
+
     }
 }
