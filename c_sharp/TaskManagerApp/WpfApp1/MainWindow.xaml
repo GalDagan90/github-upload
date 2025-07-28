@@ -20,8 +20,8 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
-            <Button Content="Add New Task" Padding="5" Margin="0,0,10,0"
-                    Command="{Binding AddTaskCommand}"/>
+            <Button Content="Save Task" Padding="5" Margin="0,0,10,0"
+                    Command="{Binding SaveTaskCommand}"/>
             <Button Content="Delete Selected Task" Padding="5"
                     Command="{Binding DeleteTaskCommand}"/>
         </StackPanel>

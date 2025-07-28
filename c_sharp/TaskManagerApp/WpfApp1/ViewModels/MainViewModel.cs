@@ -17,9 +17,9 @@ namespace TaskManagerApp.ViewModels
         private DateTime _newTaskDueDate;
         private MyTaskPriority _newTaskPriority;
         private MyTaskStatus _newTaskStatus;
-
+        private bool _isEditing;
         public RelayCommands DeleteTaskCommand { get; private set; }
-        public RelayCommands AddTaskCommand { get; private set; }
+        public RelayCommands SaveTaskCommand { get; private set; }
 
         public IEnumerable<TaskManagerApp.Models.MyTaskStatus> MyTaskStatuses
         {
@@ -43,14 +43,38 @@ namespace TaskManagerApp.ViewModels
             set
             {
                 SetProperty(ref _selectedTask, value);
+
+                if (_selectedTask != null)
+                {
+                    _isEditing = true;
+                    NewTaskTitle = _selectedTask.Title;
+                    NewTaskDescription = _selectedTask.Description;
+                    NewTaskDueDate = _selectedTask.DueDate;
+                    NewTaskPriority = _selectedTask.Priority;
+                    NewTaskStatus = _selectedTask.Status;
+                }
+                else
+                {
+                    _isEditing = false;
+                    NewTaskTitle = string.Empty;
+                    NewTaskDescription = string.Empty;
+                    NewTaskDueDate = DateTime.Now.AddDays(1);
+                    NewTaskPriority = MyTaskPriority.Low;
+                    NewTaskStatus = MyTaskStatus.NotStarted;
+                }
+                
                 DeleteTaskCommand?.OnCanExecuteChanged();
+                SaveTaskCommand?.OnCanExecuteChanged();
             }
         }
 
         public string NewTaskTitle
         {
             get => _newTaskTitle;
-            set => SetProperty(ref _newTaskTitle, value);
+            set
+            {
+                SetProperty(ref _newTaskTitle, value);
+            }
         }
 
         public string NewTaskDescription
@@ -98,7 +122,7 @@ namespace TaskManagerApp.ViewModels
         private void InitializeCommands()
         {
             DeleteTaskCommand = new RelayCommands(ExecuteDeleteSelectedTask, CanExecuteDeleteSelectedTask);
-            AddTaskCommand = new RelayCommands(ExecuteAddNewTask, CanExecuteAddNewTask);
+            SaveTaskCommand = new RelayCommands(ExecuteSaveNewTask, CanExecuteSaveNewTask);
         }
 
         private void ExecuteDeleteSelectedTask(object parameter)
@@ -115,17 +139,40 @@ namespace TaskManagerApp.ViewModels
             return SelectedTask != null && Tasks.Contains(SelectedTask);
         }
 
-        private void ExecuteAddNewTask(object parameter)
+        private void ExecuteSaveNewTask(object parameter)
         {
-            var newTask = new TaskManagerApp.Models.Task(
-                NewTaskTitle, NewTaskDescription, NewTaskDueDate, NewTaskStatus, NewTaskPriority
-            );
+            if (_isEditing && SelectedTask != null)
+            {
+                TaskManagerApp.Models.Task originalTask = SelectedTask; // Keep reference to original for removal
 
-            Tasks.Add(newTask);
+                var updatedTask = new TaskManagerApp.Models.Task(
+                    NewTaskTitle,
+                    NewTaskDescription,
+                    NewTaskDueDate,
+                    NewTaskStatus,
+                    NewTaskPriority
+                );
 
+                Tasks.Remove(originalTask);
+                Tasks.Add(updatedTask);
+            }
+            else
+            {
+                // We are adding a new task
+                var newTask = new TaskManagerApp.Models.Task(
+                    NewTaskTitle,
+                    NewTaskDescription,
+                    NewTaskDueDate,
+                    NewTaskStatus,
+                    NewTaskPriority
+                );
+                Tasks.Add(newTask);
+            }
+
+            SelectedTask = null;
         }
 
-        private bool CanExecuteAddNewTask(object parameter)
+        private bool CanExecuteSaveNewTask(object parameter)
         {
             return !string.IsNullOrWhiteSpace(NewTaskTitle) &&
                    !string.IsNullOrWhiteSpace(NewTaskDescription);

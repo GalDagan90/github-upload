@@ -147,7 +147,7 @@ namespace TaskManagerApp.Tests
         }
 
         [TestMethod]
-        public void MainViewModel_ShouldAddNewTask_WhenAddTaskCommandExecuted()
+        public void MainViewModel_ShouldAddNewTask_WhenSaveTaskCommandExecuted()
         {
             var viewModel = new MainViewModel();
             int initialTaskCount = viewModel.Tasks.Count;
@@ -158,7 +158,7 @@ namespace TaskManagerApp.Tests
             viewModel.NewTaskPriority = MyTaskPriority.High;
             viewModel.NewTaskStatus = MyTaskStatus.InProgress;
 
-            viewModel.AddTaskCommand.Execute(null);
+            viewModel.SaveTaskCommand.Execute(null);
             Assert.AreEqual(initialTaskCount + 1, viewModel.Tasks.Count, "Tasks collection should have one more task after adding a new task.");
             Assert.AreEqual("New Task", viewModel.Tasks.Last().Title, "The last task in the collection should be the newly added task.");
         }
