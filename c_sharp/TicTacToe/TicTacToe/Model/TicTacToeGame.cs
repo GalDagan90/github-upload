@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TicTacToe.Model
 {
-    public enum PlayerEnum
+    public enum PlayerTicker
     {
         None,
         PlayerX,
@@ -23,14 +23,14 @@ namespace TicTacToe.Model
 
     public class GameBoard
     {
-        private PlayerEnum[,] _board;
+        private PlayerTicker[,] _board;
         
         public GameBoard()
         {
-            _board = new PlayerEnum[3, 3];
+            _board = new PlayerTicker[3, 3];
             ResetBoard();
         }
-        public PlayerEnum GetCellValue(int row, int col)
+        public PlayerTicker GetCellValue(int row, int col)
         {
             if (row < 0 || row >= 3 || col < 0 || col >= 3)
                 throw new ArgumentOutOfRangeException("Invalid cell coordinates.");
@@ -38,7 +38,7 @@ namespace TicTacToe.Model
             return _board[row, col];
         }
 
-        public bool TryMakeMove(int row, int col, PlayerEnum player)
+        public bool TryMakeMove(int row, int col, PlayerTicker player)
         {
             if (IsMoveValid(row, col, player) == false)
             {
@@ -49,14 +49,14 @@ namespace TicTacToe.Model
             return true;
         }
 
-        private bool IsMoveValid(int row, int col, PlayerEnum player)
+        private bool IsMoveValid(int row, int col, PlayerTicker player)
         {
             if (row < 0 || row >= 3 || col < 0 || col >= 3)
             {
                 return false;
             }
 
-            return _board[row, col] == PlayerEnum.None;
+            return _board[row, col] == PlayerTicker.None;
         }
 
         public void ResetBoard()
@@ -65,7 +65,7 @@ namespace TicTacToe.Model
             {
                 for (int col = 0; col < 3; col++)
                 {
-                    _board[row, col] = PlayerEnum.None;
+                    _board[row, col] = PlayerTicker.None;
                 }
             }
         }
@@ -73,7 +73,7 @@ namespace TicTacToe.Model
 
     public class TicTacToeGame
     {
-        private PlayerEnum _currentPlayer;
+        private PlayerTicker _currentPlayer;
         private bool _isGameOver;
         private GameStatus _gameStatus;
         private int _movesCount;
@@ -85,7 +85,7 @@ namespace TicTacToe.Model
             ResetGame();
         }
 
-        public PlayerEnum CurrentPlayer
+        public PlayerTicker CurrentPlayer
         {
             get { return _currentPlayer; }
             private set { _currentPlayer = value; }
@@ -103,7 +103,7 @@ namespace TicTacToe.Model
             private set { _gameStatus = value; }
         }
 
-        public PlayerEnum GetCellValue(int row, int col)
+        public PlayerTicker GetCellValue(int row, int col)
         {
             return _gameBoard.GetCellValue(row, col); // Example: return value of the first cell
         }
@@ -148,7 +148,7 @@ namespace TicTacToe.Model
         private void ResetGame()
         {
             _gameBoard.ResetBoard();
-            CurrentPlayer = PlayerEnum.PlayerX;
+            CurrentPlayer = PlayerTicker.PlayerX;
             IsGameOver = false;
             GameStatus = GameStatus.InProgress;
             _movesCount = 0;
@@ -161,7 +161,7 @@ namespace TicTacToe.Model
 
         private void SwitchPlayer()
         {
-            CurrentPlayer = CurrentPlayer == PlayerEnum.PlayerX ? PlayerEnum.PlayerO : PlayerEnum.PlayerX;
+            CurrentPlayer = CurrentPlayer == PlayerTicker.PlayerX ? PlayerTicker.PlayerO : PlayerTicker.PlayerX;
         }
 
         private bool CheckDraw()

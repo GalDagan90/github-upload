@@ -14,7 +14,7 @@ namespace TicTacToe.Model.Tests
             Assert.IsNotNull(game);
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
             Assert.IsFalse(game.IsGameOver);
-            Assert.AreEqual(PlayerEnum.PlayerX, game.CurrentPlayer);
+            Assert.AreEqual(PlayerTicker.PlayerX, game.CurrentPlayer);
 
             int[] cols = { 0, 1, 2 };
             int[] rows = { 0, 1, 2 };
@@ -22,7 +22,7 @@ namespace TicTacToe.Model.Tests
             {
                 foreach (var col in cols)
                 {
-                    Assert.AreEqual(PlayerEnum.None, game.GetCellValue(row, col));
+                    Assert.AreEqual(PlayerTicker.None, game.GetCellValue(row, col));
                 }
             }
         }
@@ -33,7 +33,7 @@ namespace TicTacToe.Model.Tests
             var game = new TicTacToeGame();
             
             game.MakeMove(0, 0);
-            Assert.AreEqual(PlayerEnum.PlayerX, game.GetCellValue(0,0), "Should have X in cell (0,0)");
+            Assert.AreEqual(PlayerTicker.PlayerX, game.GetCellValue(0,0), "Should have X in cell (0,0)");
         }
 
         [TestMethod]
@@ -65,27 +65,27 @@ namespace TicTacToe.Model.Tests
              - - -
             */
 
-            Assert.AreEqual(PlayerEnum.PlayerX, game.CurrentPlayer);
+            Assert.AreEqual(PlayerTicker.PlayerX, game.CurrentPlayer);
             game.MakeMove(0, 0); // X
             var gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
 
-            Assert.AreEqual(PlayerEnum.PlayerO, game.CurrentPlayer);
+            Assert.AreEqual(PlayerTicker.PlayerO, game.CurrentPlayer);
             game.MakeMove(1, 0); // O
             gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
 
-            Assert.AreEqual(PlayerEnum.PlayerX, game.CurrentPlayer);
+            Assert.AreEqual(PlayerTicker.PlayerX, game.CurrentPlayer);
             game.MakeMove(0, 1); // X
             gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
 
-            Assert.AreEqual(PlayerEnum.PlayerO, game.CurrentPlayer);
+            Assert.AreEqual(PlayerTicker.PlayerO, game.CurrentPlayer);
             game.MakeMove(1, 1); // O
             gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
 
-            Assert.AreEqual(PlayerEnum.PlayerX, game.CurrentPlayer);
+            Assert.AreEqual(PlayerTicker.PlayerX, game.CurrentPlayer);
             game.MakeMove(0, 2); // X
             gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.Win, game.GameStatus);
@@ -103,27 +103,27 @@ namespace TicTacToe.Model.Tests
              x - -
             */
 
-            Assert.AreEqual(PlayerEnum.PlayerX, game.CurrentPlayer);
+            Assert.AreEqual(PlayerTicker.PlayerX, game.CurrentPlayer);
             game.MakeMove(0, 0); // X
             var gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
 
-            Assert.AreEqual(PlayerEnum.PlayerO, game.CurrentPlayer);
+            Assert.AreEqual(PlayerTicker.PlayerO, game.CurrentPlayer);
             game.MakeMove(0, 1); // O
             gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
 
-            Assert.AreEqual(PlayerEnum.PlayerX, game.CurrentPlayer);
+            Assert.AreEqual(PlayerTicker.PlayerX, game.CurrentPlayer);
             game.MakeMove(1, 0); // X
             gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
 
-            Assert.AreEqual(PlayerEnum.PlayerO, game.CurrentPlayer);
+            Assert.AreEqual(PlayerTicker.PlayerO, game.CurrentPlayer);
             game.MakeMove(1, 1); // O
             gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
 
-            Assert.AreEqual(PlayerEnum.PlayerX, game.CurrentPlayer);
+            Assert.AreEqual(PlayerTicker.PlayerX, game.CurrentPlayer);
             game.MakeMove(2, 0); // X
             gameStatus = game.CheckGameStatus();
 
@@ -145,7 +145,7 @@ namespace TicTacToe.Model.Tests
             game.MakeMove(0, 0); // X
             var gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
-            Assert.AreEqual(PlayerEnum.PlayerO, game.CurrentPlayer);
+            Assert.AreEqual(PlayerTicker.PlayerO, game.CurrentPlayer);
 
             game.MakeMove(0, 1); // O
             gameStatus = game.CheckGameStatus();
