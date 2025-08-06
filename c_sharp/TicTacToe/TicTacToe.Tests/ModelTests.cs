@@ -69,21 +69,25 @@ namespace TicTacToe.Model.Tests
             game.MakeMove(0, 0); // X
             var gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
+            game.SwitchPlayer();
 
             Assert.AreEqual(PlayerTicker.PlayerO, game.CurrentPlayer);
             game.MakeMove(1, 0); // O
             gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
+            game.SwitchPlayer();
 
             Assert.AreEqual(PlayerTicker.PlayerX, game.CurrentPlayer);
             game.MakeMove(0, 1); // X
             gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
+            game.SwitchPlayer();
 
             Assert.AreEqual(PlayerTicker.PlayerO, game.CurrentPlayer);
             game.MakeMove(1, 1); // O
             gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
+            game.SwitchPlayer();
 
             Assert.AreEqual(PlayerTicker.PlayerX, game.CurrentPlayer);
             game.MakeMove(0, 2); // X
@@ -107,25 +111,30 @@ namespace TicTacToe.Model.Tests
             game.MakeMove(0, 0); // X
             var gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
+            game.SwitchPlayer();
 
             Assert.AreEqual(PlayerTicker.PlayerO, game.CurrentPlayer);
             game.MakeMove(0, 1); // O
             gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
+            game.SwitchPlayer();
 
             Assert.AreEqual(PlayerTicker.PlayerX, game.CurrentPlayer);
             game.MakeMove(1, 0); // X
             gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
+            game.SwitchPlayer();
 
             Assert.AreEqual(PlayerTicker.PlayerO, game.CurrentPlayer);
             game.MakeMove(1, 1); // O
             gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
+            game.SwitchPlayer();
 
             Assert.AreEqual(PlayerTicker.PlayerX, game.CurrentPlayer);
             game.MakeMove(2, 0); // X
             gameStatus = game.CheckGameStatus();
+            game.SwitchPlayer();
 
             Assert.AreEqual(GameStatus.Win, game.GameStatus);
             Assert.IsTrue(game.IsGameOver);
@@ -145,19 +154,23 @@ namespace TicTacToe.Model.Tests
             game.MakeMove(0, 0); // X
             var gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
+            game.SwitchPlayer();
             Assert.AreEqual(PlayerTicker.PlayerO, game.CurrentPlayer);
 
             game.MakeMove(0, 1); // O
             gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
+            game.SwitchPlayer();
 
             game.MakeMove(1, 1); // X
             gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
+            game.SwitchPlayer();
 
             game.MakeMove(1, 0); // O
             gameStatus = game.CheckGameStatus();
             Assert.AreEqual(GameStatus.InProgress, game.GameStatus);
+            game.SwitchPlayer();
 
             game.MakeMove(2, 2); // X
             gameStatus = game.CheckGameStatus();
@@ -176,20 +189,36 @@ namespace TicTacToe.Model.Tests
             */
             game.MakeMove(1, 1); // X
             game.CheckGameStatus();
+            game.SwitchPlayer();
+            
             game.MakeMove(0, 0); // O
             game.CheckGameStatus();
+            game.SwitchPlayer();
+            
             game.MakeMove(1, 0); // X
             game.CheckGameStatus();
+            game.SwitchPlayer();
+            
             game.MakeMove(1, 2); // O
             game.CheckGameStatus();
+            game.SwitchPlayer();
+            
             game.MakeMove(0, 1); // X
             game.CheckGameStatus();
+            game.SwitchPlayer();
+
             game.MakeMove(2, 1); // O
             game.CheckGameStatus();
+            game.SwitchPlayer();
+            
             game.MakeMove(0, 2); // X
             game.CheckGameStatus();
+            game.SwitchPlayer();
+
             game.MakeMove(2, 0); // O
             game.CheckGameStatus();
+            game.SwitchPlayer();
+
             game.MakeMove(2, 2); // X
             var status = game.CheckGameStatus();
             

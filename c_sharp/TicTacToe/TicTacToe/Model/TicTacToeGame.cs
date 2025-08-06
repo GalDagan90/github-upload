@@ -137,10 +137,6 @@ namespace TicTacToe.Model
                 IsGameOver = true;
                 GameStatus = GameStatus.Draw;
             }
-            else
-            {
-                SwitchPlayer();
-            }
 
             return GameStatus;
         }
@@ -153,16 +149,16 @@ namespace TicTacToe.Model
             GameStatus = GameStatus.InProgress;
             _movesCount = 0;
         }
+        public void SwitchPlayer()
+        {
+            CurrentPlayer = (CurrentPlayer == PlayerTicker.PlayerX) ? PlayerTicker.PlayerO : PlayerTicker.PlayerX;
+        }
 
         private bool CheckWin()
         {
             return CheckWinInRows() || CheckWinInCols() || CheckWinInDiagonal();
         }
 
-        private void SwitchPlayer()
-        {
-            CurrentPlayer = CurrentPlayer == PlayerTicker.PlayerX ? PlayerTicker.PlayerO : PlayerTicker.PlayerX;
-        }
 
         private bool CheckDraw()
         {
