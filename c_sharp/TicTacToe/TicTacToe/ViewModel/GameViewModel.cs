@@ -128,7 +128,7 @@ namespace TicTacToe.ViewModel
                 switch (_game.CheckGameStatus())
                 {
                     case GameStatus.Win:
-                        GameStatusMessage = $"Player {_game.CurrentPlayer} wins!";
+                        GameStatusMessage = $"Player {_game.PlayerTickerSymbol} wins!";
                         break;
                     case GameStatus.Draw:
                         GameStatusMessage = "It's a draw!";
@@ -139,7 +139,7 @@ namespace TicTacToe.ViewModel
             }
             else
             {
-                CurrentPlayerMessage = $"Current Player: {_game.CurrentPlayer}";
+                CurrentPlayerMessage = $"Current Player: {_game.PlayerTickerSymbol}";
             }
         }
     }

@@ -4,9 +4,43 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TicTacToe"
+        xmlns:viewModel="clr-namespace:TicTacToe.ViewModel"
+        xmlns:views="clr-namespace:TicTacToe.View"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Tic-Tac-Toe"
+        Height="500" Width="400"
+        WindowStartupLocation="CenterScreen">
 
+    <!-- Setting the DataContext for the entire Window to our GameViewModel. -->
+    <Window.DataContext>
+        <viewModel:GameViewModel />
+    </Window.DataContext>
+
+    <!-- Main Grid for the window layout -->
+    <Grid>
+        <!-- Define rows for the header, the game board, and the footer. -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- The header section is now a separate UserControl -->
+        <views:GameHeaderView Grid.Row="0" />
+
+        <!-- The game board section is also now a separate UserControl -->
+        <views:BoardCellView Grid.Row="1" />
+
+        <!-- Footer section for the reset button -->
+        <StackPanel Grid.Row="2" HorizontalAlignment="Center" Margin="10">
+            <!--
+            The reset button is not fully implemented in our current ViewModel,
+            but we'll include the XAML here as a placeholder.
+            <Button Content="Reset Game"
+                    Command="{Binding ResetGameCommand}"
+                    Padding="20,10"
+                    FontSize="18" />
+            -->
+        </StackPanel>
     </Grid>
 </Window>

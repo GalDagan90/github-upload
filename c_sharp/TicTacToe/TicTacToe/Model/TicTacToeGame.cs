@@ -103,6 +103,22 @@ namespace TicTacToe.Model
             private set { _gameStatus = value; }
         }
 
+        public string PlayerTickerSymbol
+        {
+            get 
+            {
+                switch(CurrentPlayer)
+                {
+                    case PlayerTicker.PlayerX:
+                        return "X";
+                    case PlayerTicker.PlayerO:
+                        return "O";
+                    default:
+                        return string.Empty;
+                }
+            }
+        }
+
         public PlayerTicker GetCellValue(int row, int col)
         {
             return _gameBoard.GetCellValue(row, col); // Example: return value of the first cell
