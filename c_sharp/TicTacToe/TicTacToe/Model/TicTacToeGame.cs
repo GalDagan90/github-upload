@@ -121,7 +121,7 @@ namespace TicTacToe.Model
 
         public PlayerTicker GetCellValue(int row, int col)
         {
-            return _gameBoard.GetCellValue(row, col); // Example: return value of the first cell
+            return _gameBoard.GetCellValue(row, col);
         }
 
         public bool MakeMove(int row, int col)
@@ -157,7 +157,7 @@ namespace TicTacToe.Model
             return GameStatus;
         }
 
-        private void ResetGame()
+        public void ResetGame()
         {
             _gameBoard.ResetBoard();
             CurrentPlayer = PlayerTicker.PlayerX;

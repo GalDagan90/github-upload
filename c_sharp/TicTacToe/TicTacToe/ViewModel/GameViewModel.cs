@@ -11,13 +11,13 @@ namespace TicTacToe.ViewModel
     {
         private TicTacToeGame _game;
         private bool _isGameOver;
-        private string _gameStatusMessage;
-        private string _currentPlayerMessage;
+        private string _gameStatusMessage = null;
+        private string _currentPlayerMessage = null;
         private GameStatus _currentGameStatus;
 
         public ObservableCollection<CellViewModel> BoardCells { get; }
-
         public ICommand PlayMoveCommand { get; private set; }
+        public ICommand ResetGameCommand { get; private set; }
 
         public GameViewModel()
         {
@@ -33,7 +33,8 @@ namespace TicTacToe.ViewModel
             }
 
             PlayMoveCommand = new RelayCommand(ExecutePlayMove, CanExecutePlayMove);
-            
+            ResetGameCommand = new RelayCommand(ExecuteResetGame, CanExecuteResetGame);
+
             GameStatusMessage = "Game in progress";
             CurrentPlayerMessage = $"Current Player: {_game.CurrentPlayer}";
             IsGameOver = false;
@@ -100,6 +101,30 @@ namespace TicTacToe.ViewModel
             }
 
             return false;
+        }
+
+        public void ExecuteResetGame(object parameter)
+        {
+            _game.ResetGame();
+            _currentGameStatus = _game.GameStatus;
+
+            IsGameOver = _game.IsGameOver;
+            GameStatusMessage = "Game in progress";
+            CurrentPlayerMessage = $"Current Player: {_game.CurrentPlayer}";
+            
+            foreach (var cell in BoardCells)
+            {
+                cell.CellValue = PlayerTicker.None;
+                cell.IsEnabled = true;
+            }
+
+            UpdateAllCellsUI();
+            UpdateGameUI();
+        }
+
+        public bool CanExecuteResetGame(object parameter)
+        {
+            return IsGameOver;
         }
 
         private void UpdateAllCellsUI()

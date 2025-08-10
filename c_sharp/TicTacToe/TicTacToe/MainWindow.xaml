@@ -31,16 +31,8 @@
         <!-- The game board section is also now a separate UserControl -->
         <views:BoardCellView Grid.Row="1" />
 
-        <!-- Footer section for the reset button -->
-        <StackPanel Grid.Row="2" HorizontalAlignment="Center" Margin="10">
-            <!--
-            The reset button is not fully implemented in our current ViewModel,
-            but we'll include the XAML here as a placeholder.
-            <Button Content="Reset Game"
-                    Command="{Binding ResetGameCommand}"
-                    Padding="20,10"
-                    FontSize="18" />
-            -->
-        </StackPanel>
+        <!-- The footer section contains the ResetButtonView -->
+        <views:ResetButtonView Grid.Row="2" HorizontalAlignment="Center" Margin="10" />
+
     </Grid>
 </Window>

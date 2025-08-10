@@ -25,7 +25,6 @@
                         Margin="-1,-1,-1,-1"
                         IsEnabled="{Binding IsEnabled}">
 
-                    <!-- The TextBlock's Text is now bound to the PlayerSymbol property -->
                     <Button.Content>
                         <TextBlock Text="{Binding PlayerSymbol}" />
                     </Button.Content>
