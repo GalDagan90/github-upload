@@ -3,8 +3,9 @@
 !*.cpp
 !*.hpp
 !*.h
-!*.cs         
+!*.cs
 !*.xaml
+!*.md
 !/**/
 !.gitignore
 !dummy.md
