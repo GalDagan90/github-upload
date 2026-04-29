@@ -1,0 +1,13 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:TradingJournal.ViewModels"
+             x:Class="TradingJournal.Views.AnalyticsView"
+             x:DataType="vm:AnalyticsViewModel">
+
+    <TextBlock Text="Analytics — coming in Steps 6 and 7"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center"
+               FontSize="16"
+               Opacity="0.5"/>
+
+</UserControl>

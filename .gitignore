@@ -5,6 +5,10 @@
 !*.h
 !*.cs
 !*.xaml
+!*.axaml
+!*.csproj
+!*.sln
+!*.manifest
 !*.md
 !/**/
 !.gitignore

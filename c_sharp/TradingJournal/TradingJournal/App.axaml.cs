@@ -1,32 +1,62 @@
-using System.Linq;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Avalonia.Styling;
+using TradingJournal.Services;
 using TradingJournal.ViewModels;
 using TradingJournal.Views;
 
-namespace TradingJournal
+namespace TradingJournal;
+
+/// <summary>
+/// Application entry point responsible for bootstrapping services,
+/// initialising the database, restoring the saved theme, and creating the main window.
+/// </summary>
+public partial class App : Application
 {
-    public partial class App : Application
+    /// <inheritdoc/>
+    public override void Initialize()
     {
-        public override void Initialize()
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
-
-        public override void OnFrameworkInitializationCompleted()
-        {
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                desktop.MainWindow = new MainWindow
-                {
-                    DataContext = new MainWindowViewModel(),
-                };
-            }
-
-            base.OnFrameworkInitializationCompleted();
-        }
+        AvaloniaXamlLoader.Load(this);
     }
+
+    /// <inheritdoc/>
+    public override async void OnFrameworkInitializationCompleted()
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            // 1. Initialise the database (creates tables if they don't exist).
+            var dbInitializer = new DatabaseInitializer();
+            await dbInitializer.InitializeAsync();
+
+            // 2. Build services.
+            var settingsService  = new SqliteSettingsService();
+            var tradeRepository  = new SqliteTradeRepository();
+
+            // 3. Create the main ViewModel and restore persisted settings.
+            var mainVm = new MainWindowViewModel(settingsService);
+            await mainVm.InitializeAsync();
+
+            // 4. Apply the restored theme before the window is shown.
+            ApplyTheme(mainVm.IsDarkTheme);
+
+            // 5. Re-apply whenever the user toggles the theme.
+            mainVm.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(MainWindowViewModel.IsDarkTheme))
+                    ApplyTheme(mainVm.IsDarkTheme);
+            };
+
+            desktop.MainWindow = new MainWindow { DataContext = mainVm };
+        }
+
+        base.OnFrameworkInitializationCompleted();
+    }
+
+    /// <summary>
+    /// Applies the given theme variant to the running application.
+    /// </summary>
+    /// <param name="isDark">True for dark theme; false for light theme.</param>
+    private static void ApplyTheme(bool isDark) =>
+        Current!.RequestedThemeVariant = isDark ? ThemeVariant.Dark : ThemeVariant.Light;
 }

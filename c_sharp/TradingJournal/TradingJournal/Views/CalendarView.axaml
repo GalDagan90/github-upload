@@ -1,0 +1,13 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:TradingJournal.ViewModels"
+             x:Class="TradingJournal.Views.CalendarView"
+             x:DataType="vm:CalendarViewModel">
+
+    <TextBlock Text="Calendar — coming in Step 8"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center"
+               FontSize="16"
+               Opacity="0.5"/>
+
+</UserControl>

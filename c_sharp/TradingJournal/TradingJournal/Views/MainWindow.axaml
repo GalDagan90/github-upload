@@ -1,0 +1,48 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:TradingJournal.ViewModels"
+        x:Class="TradingJournal.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Trading Journal"
+        Width="1200" Height="800"
+        MinWidth="900" MinHeight="600">
+
+    <DockPanel>
+
+        <!-- Navigation header: title on the left, theme toggle on the right -->
+        <Border DockPanel.Dock="Top" Padding="16,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           Text="Trading Journal"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"/>
+
+                <Button Grid.Column="1"
+                        Command="{Binding ToggleThemeCommand}"
+                        Content="{Binding ThemeToggleLabel}"
+                        VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Three-tab content area -->
+        <TabControl>
+            <TabItem Header="Trade Log">
+                <ContentControl Content="{Binding TradeLog}"/>
+            </TabItem>
+            <TabItem Header="Analytics">
+                <ContentControl Content="{Binding Analytics}"/>
+            </TabItem>
+            <TabItem Header="Calendar">
+                <ContentControl Content="{Binding Calendar}"/>
+            </TabItem>
+        </TabControl>
+
+    </DockPanel>
+
+</Window>
