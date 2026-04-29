@@ -29,13 +29,20 @@ public partial class MainWindowViewModel : ViewModelBase
     /// and notifies <c>App</c> (via PropertyChanged) to apply the new variant.
     /// </summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ThemeToggleLabel))]
+    [NotifyPropertyChangedFor(nameof(ThemeToggleIcon))]
+    [NotifyPropertyChangedFor(nameof(ThemeToggleTooltip))]
     private bool _isDarkTheme;
 
     /// <summary>
-    /// Label shown on the theme toggle button — reflects the mode the button will switch TO.
+    /// Icon shown on the theme toggle button.
+    /// ☀ = currently dark, click to go light. 🌙 = currently light, click to go dark.
     /// </summary>
-    public string ThemeToggleLabel => IsDarkTheme ? "Light Mode" : "Dark Mode";
+    public string ThemeToggleIcon => IsDarkTheme ? "☀" : "🌙";
+
+    /// <summary>
+    /// Tooltip text for the theme toggle button.
+    /// </summary>
+    public string ThemeToggleTooltip => IsDarkTheme ? "Switch to Light Mode" : "Switch to Dark Mode";
 
     /// <summary>
     /// Initialises the MainWindowViewModel and creates the three tab ViewModels.

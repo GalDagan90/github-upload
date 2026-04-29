@@ -76,8 +76,11 @@
         <Button HorizontalAlignment="Right"
                 VerticalAlignment="Top"
                 Margin="0,10,16,0"
+                Width="38" Height="38"
+                FontSize="18"
                 Command="{Binding ToggleThemeCommand}"
-                Content="{Binding ThemeToggleLabel}"/>
+                Content="{Binding ThemeToggleIcon}"
+                ToolTip.Tip="{Binding ThemeToggleTooltip}"/>
     </Grid>
 
 </Window>
