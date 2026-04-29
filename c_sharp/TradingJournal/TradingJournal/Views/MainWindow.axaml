@@ -7,30 +7,59 @@
         Width="1200" Height="800"
         MinWidth="900" MinHeight="600">
 
-    <DockPanel>
+    <Window.Resources>
+        <!-- Browser-style tab: rounded top corners, background-based selection indicator -->
+        <ControlTheme x:Key="{x:Type TabItem}" TargetType="TabItem">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="MinWidth" Value="110"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+            <Setter Property="Opacity" Value="0.65"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="PART_LayoutRoot"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="8,8,0,0"
+                            Padding="{TemplateBinding Padding}"
+                            Margin="2,6,2,0"
+                            Cursor="Hand">
+                        <ContentPresenter Name="PART_ContentPresenter"
+                                          Content="{TemplateBinding Header}"
+                                          ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
 
-        <!-- Navigation header: title on the left, theme toggle on the right -->
-        <Border DockPanel.Dock="Top" Padding="16,10">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+            <!-- Hover: subtle fill -->
+            <Style Selector="^:pointerover">
+                <Setter Property="Opacity" Value="0.85"/>
+            </Style>
+            <Style Selector="^:pointerover /template/ Border#PART_LayoutRoot">
+                <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}"/>
+            </Style>
 
-                <TextBlock Grid.Column="0"
-                           Text="Trading Journal"
-                           FontSize="20"
-                           FontWeight="SemiBold"
-                           VerticalAlignment="Center"/>
+            <!-- Selected: full opacity, background matches content area -->
+            <Style Selector="^:selected">
+                <Setter Property="Opacity" Value="1"/>
+            </Style>
+            <Style Selector="^:selected /template/ Border#PART_LayoutRoot">
+                <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAltHighBrush}"/>
+            </Style>
+            <Style Selector="^:selected:pointerover /template/ Border#PART_LayoutRoot">
+                <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAltHighBrush}"/>
+            </Style>
+        </ControlTheme>
+    </Window.Resources>
 
-                <Button Grid.Column="1"
-                        Command="{Binding ToggleThemeCommand}"
-                        Content="{Binding ThemeToggleLabel}"
-                        VerticalAlignment="Center"/>
-            </Grid>
-        </Border>
-
-        <!-- Three-tab content area -->
+    <!--
+        Single Grid cell: TabControl fills the whole window.
+        The theme toggle button is overlaid in the top-right corner of the same cell,
+        floating over the tab strip row without needing a separate header bar.
+    -->
+    <Grid>
         <TabControl>
             <TabItem Header="Trade Log">
                 <ContentControl Content="{Binding TradeLog}"/>
@@ -43,6 +72,11 @@
             </TabItem>
         </TabControl>
 
-    </DockPanel>
+        <Button HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Margin="0,10,16,0"
+                Command="{Binding ToggleThemeCommand}"
+                Content="{Binding ThemeToggleLabel}"/>
+    </Grid>
 
 </Window>
