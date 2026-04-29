@@ -41,9 +41,10 @@
                 <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}"/>
             </Style>
 
-            <!-- Selected: full opacity, background matches content area -->
+            <!-- Selected: full opacity, bold text, background matches content area -->
             <Style Selector="^:selected">
                 <Setter Property="Opacity" Value="1"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
             </Style>
             <Style Selector="^:selected /template/ Border#PART_LayoutRoot">
                 <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAltHighBrush}"/>
