@@ -316,6 +316,38 @@ CREATE TABLE IF NOT EXISTS Settings (
 - No `Windows.*` namespace usage in ViewModels or Services
 - Follow the ViewLocator convention: `FooViewModel` → `FooView` (UserControl in `Views/`)
 
+## Data Storage
+
+The SQLite database file is stored at `%APPDATA%\TradingJournal\trades.db`.
+The directory is created on first launch if it does not exist.
+This location is writable without admin rights, survives app updates, and is safe from accidental git commits.
+
+---
+
+## Distribution
+
+**Current target:** Single-file `.exe` (`PublishSingleFile` in .NET 9) — simplest for personal use.
+
+## Database File — Debug vs Release
+
+To protect real trade data during development, the database filename differs by build configuration:
+
+- **Debug** → `%APPDATA%\TradingJournal\trades-dev.db`
+- **Release** → `%APPDATA%\TradingJournal\trades.db`
+
+Implemented in `DatabaseInitializer` using a compile-time `#if DEBUG` / `#else` block.
+Running in Visual Studio (Debug) will never touch the production database.
+
+**Future (final polish step): MSIX installer**
+- Add a Windows Application Packaging Project (`.wapproj`) to the solution in Visual Studio
+- Configure `Package.appxmanifest` (name, publisher, version, icons, capabilities)
+- Sign with a self-signed certificate (personal use) or a commercial certificate (wider distribution)
+- Output is a single `.msix` file — double-click installs, registers a Start Menu entry, supports clean uninstall
+- No application code changes required — MSIX is purely a packaging layer
+- `%APPDATA%` is fully accessible from MSIX packaged apps, so the database path needs no adjustment
+
+---
+
 ## Build Order (for Claude Code sessions)
 1. Models — StrategyType enum, TradeStatus enum, Trade class
 2. Data layer — Contracts interfaces, DatabaseInitializer,
