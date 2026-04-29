@@ -146,6 +146,12 @@ A full-width `DataGrid` (`Avalonia.Controls.DataGrid`) showing all trades, **one
 - **Closed**: position closed for a gain or loss
 - **Assigned**: option was assigned (stock position taken or shares called away)
 
+### Deleting Trades
+
+- Right-click a row to open a context menu with a "Delete Trade" option
+- A confirmation dialog is shown before deletion to prevent accidents
+- Deletion removes the row from both the `ObservableCollection` and the database
+
 ### Toolbar / Filters
 
 A toolbar sits above the DataGrid with the following filters (all combinable, applied simultaneously):
@@ -300,6 +306,7 @@ CREATE TABLE IF NOT EXISTS Settings (
 
 ## Development Guidelines
 
+- Every public type (class, interface, enum, record), member (property, method, constructor), and enum value **must** have an XML `<summary>` doc comment. Use `<param>`, `<returns>`, and `<remarks>` where they add genuine clarity.
 - Use `[ObservableProperty]` and `[RelayCommand]` source generators from CommunityToolkit.Mvvm
 - Inject services via constructor (no service locator)
 - ViewModels must have zero dependencies on Avalonia types — keeps them testable and platform-agnostic
