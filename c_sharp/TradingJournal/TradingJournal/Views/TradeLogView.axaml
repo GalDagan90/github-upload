@@ -14,17 +14,90 @@
     <Grid RowDefinitions="Auto,*">
 
         <!-- Toolbar -->
-        <StackPanel Grid.Row="0"
-                    Orientation="Horizontal"
-                    Margin="8,8,8,4"
-                    Spacing="8">
-            <Button Content="+ Add Trade" Command="{Binding AddTradeCommand}"/>
-        </StackPanel>
+        <Grid Grid.Row="0"
+              Margin="8,8,8,4"
+              ColumnDefinitions="Auto,*,Auto">
+
+            <Button Grid.Column="0"
+                    Content="+ Add Trade"
+                    Command="{Binding AddTradeCommand}"
+                    VerticalAlignment="Center"/>
+
+            <!-- Filters -->
+            <StackPanel Grid.Column="2"
+                        Orientation="Horizontal"
+                        Spacing="8"
+                        VerticalAlignment="Center">
+
+                <!-- Ticker search -->
+                <TextBox Width="150"
+                         Text="{Binding FilterTicker}"
+                         PlaceholderText="Ticker..."
+                         VerticalAlignment="Center"/>
+
+                <!-- Strategy multi-select -->
+                <Button Content="{Binding StrategyFilterLabel}">
+                    <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedLeft">
+                            <StackPanel Spacing="4">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <Button Content="All"
+                                            Command="{Binding SelectAllStrategyFiltersCommand}"
+                                            HorizontalAlignment="Stretch"/>
+                                    <Button Content="Clear"
+                                            Command="{Binding ClearStrategyFiltersCommand}"
+                                            HorizontalAlignment="Stretch"/>
+                                </StackPanel>
+                                <ScrollViewer MaxHeight="260">
+                                    <ItemsControl ItemsSource="{Binding StrategyFilters}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <CheckBox IsChecked="{ReflectionBinding IsSelected}"
+                                                          Content="{ReflectionBinding Label}"
+                                                          Margin="4,2"/>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </StackPanel>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+
+                <!-- Status multi-select -->
+                <Button Content="{Binding StatusFilterLabel}">
+                    <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedLeft">
+                            <StackPanel Spacing="4">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <Button Content="All"
+                                            Command="{Binding SelectAllStatusFiltersCommand}"
+                                            HorizontalAlignment="Stretch"/>
+                                    <Button Content="Clear"
+                                            Command="{Binding ClearStatusFiltersCommand}"
+                                            HorizontalAlignment="Stretch"/>
+                                </StackPanel>
+                                <ItemsControl ItemsSource="{Binding StatusFilters}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{ReflectionBinding IsSelected}"
+                                                      Content="{ReflectionBinding Label}"
+                                                      Margin="4,2"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+
+            </StackPanel>
+        </Grid>
 
         <!-- Trade DataGrid -->
         <DataGrid Grid.Row="1"
                   x:Name="TradesGrid"
-                  ItemsSource="{Binding Trades}"
+                  ItemsSource="{Binding FilteredTrades}"
                   SelectedItem="{Binding SelectedTrade}"
                   RowEditEnded="OnRowEditEnded"
                   LoadingRow="OnLoadingRow"

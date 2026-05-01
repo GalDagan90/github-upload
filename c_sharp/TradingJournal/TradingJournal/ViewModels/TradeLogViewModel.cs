@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -10,22 +12,47 @@ namespace TradingJournal.ViewModels;
 
 /// <summary>
 /// ViewModel for the Trade Log tab.
-/// Owns the live trade collection, handles inline editing, and coordinates add/delete operations.
+/// Owns the trade collection, handles inline editing, add/delete, and live filtering.
 /// </summary>
 public partial class TradeLogViewModel : ViewModelBase
 {
     private readonly ITradeRepository _repository;
     private readonly IDialogService _dialogs;
 
-    /// <summary>The live collection of trade rows bound to the DataGrid.</summary>
+    /// <summary>Master collection — every trade regardless of active filters.</summary>
     public ObservableCollection<Trade> Trades { get; } = new();
+
+    /// <summary>Filtered view of <see cref="Trades"/> — what the DataGrid is bound to.</summary>
+    public ObservableCollection<Trade> FilteredTrades { get; } = new();
 
     /// <summary>The currently selected DataGrid row. Kept in sync by the View.</summary>
     [ObservableProperty]
     private Trade? _selectedTrade;
 
+    /// <summary>Case-insensitive ticker substring filter. Empty string means no filter.</summary>
+    [ObservableProperty]
+    private string _filterTicker = string.Empty;
+
+    /// <summary>One entry per <see cref="StrategyType"/> value; all selected by default.</summary>
+    public IReadOnlyList<FilterItem<StrategyType>> StrategyFilters { get; }
+
+    /// <summary>One entry per <see cref="TradeStatus"/> value; all selected by default.</summary>
+    public IReadOnlyList<FilterItem<TradeStatus>> StatusFilters { get; }
+
+    /// <summary>Button label for the Strategy filter dropdown.</summary>
+    public string StrategyFilterLabel =>
+        StrategyFilters.All(f => f.IsSelected)
+            ? "Strategy: All"
+            : $"Strategy: {StrategyFilters.Count(f => f.IsSelected)} selected";
+
+    /// <summary>Button label for the Status filter dropdown.</summary>
+    public string StatusFilterLabel =>
+        StatusFilters.All(f => f.IsSelected)
+            ? "Status: All"
+            : $"Status: {StatusFilters.Count(f => f.IsSelected)} selected";
+
     /// <summary>
-    /// Initialises the ViewModel with its dependencies.
+    /// Initialises the ViewModel and builds the filter item lists.
     /// </summary>
     /// <param name="repository">Read/write access to the Trades database table.</param>
     /// <param name="dialogs">Used to prompt the user before destructive operations.</param>
@@ -33,10 +60,18 @@ public partial class TradeLogViewModel : ViewModelBase
     {
         _repository = repository;
         _dialogs = dialogs;
+
+        StrategyFilters = Enum.GetValues<StrategyType>()
+            .Select(s => new FilterItem<StrategyType>(s, s.ToString(), ApplyFilters))
+            .ToList();
+
+        StatusFilters = Enum.GetValues<TradeStatus>()
+            .Select(s => new FilterItem<TradeStatus>(s, s.ToString(), ApplyFilters))
+            .ToList();
     }
 
     /// <summary>
-    /// Loads all persisted trades from the database into <see cref="Trades"/>.
+    /// Loads all persisted trades from the database into <see cref="Trades"/> then applies filters.
     /// Seeds three sample rows on first launch so the grid is never empty.
     /// </summary>
     public async Task InitializeAsync()
@@ -47,11 +82,13 @@ public partial class TradeLogViewModel : ViewModelBase
 
         if (Trades.Count == 0)
             await SeedDummyDataAsync();
+
+        ApplyFilters();
     }
 
     /// <summary>
     /// Persists an edited trade row. Normalises <see cref="Trade.Ticker"/> to upper-case.
-    /// Called from the View's <c>RowEditEnded</c> handler on every committed row edit.
+    /// Called from the View's event handlers on every committed edit.
     /// </summary>
     /// <param name="trade">The trade row that was just edited.</param>
     public async Task SaveTradeAsync(Trade trade)
@@ -60,7 +97,7 @@ public partial class TradeLogViewModel : ViewModelBase
         await _repository.UpdateAsync(trade);
     }
 
-    /// <summary>Appends a new blank trade row to the grid and selects it for immediate editing.</summary>
+    /// <summary>Appends a new blank trade row and selects it for immediate editing.</summary>
     [RelayCommand]
     private async Task AddTradeAsync()
     {
@@ -75,11 +112,12 @@ public partial class TradeLogViewModel : ViewModelBase
         };
         trade.Id = await _repository.AddAsync(trade);
         Trades.Add(trade);
+        ApplyFilters();
         SelectedTrade = trade;
     }
 
     /// <summary>
-    /// Deletes the given trade after an optional confirmation prompt.
+    /// Deletes the given trade after a confirmation prompt.
     /// Removes the row from both <see cref="Trades"/> and the database.
     /// </summary>
     /// <param name="trade">Trade to delete. Does nothing when <see langword="null"/>.</param>
@@ -93,7 +131,69 @@ public partial class TradeLogViewModel : ViewModelBase
 
         await _repository.DeleteAsync(trade.Id);
         Trades.Remove(trade);
+        ApplyFilters();
     }
+
+    /// <summary>
+    /// Rebuilds <see cref="FilteredTrades"/> from <see cref="Trades"/> using all active filters.
+    /// All three filters are combined with AND logic; an unset filter matches every trade.
+    /// </summary>
+    private void ApplyFilters()
+    {
+        var ticker = FilterTicker?.Trim() ?? string.Empty;
+        var strategies = StrategyFilters.Where(f => f.IsSelected).Select(f => f.Value).ToHashSet();
+        var statuses = StatusFilters.Where(f => f.IsSelected).Select(f => f.Value).ToHashSet();
+
+        FilteredTrades.Clear();
+        foreach (var t in Trades)
+        {
+            if (!string.IsNullOrEmpty(ticker) &&
+                !(t.Ticker?.Contains(ticker, StringComparison.OrdinalIgnoreCase) ?? false))
+                continue;
+            if (!strategies.Contains(t.StrategyType))
+                continue;
+            if (!statuses.Contains(t.Status))
+                continue;
+            FilteredTrades.Add(t);
+        }
+
+        OnPropertyChanged(nameof(StrategyFilterLabel));
+        OnPropertyChanged(nameof(StatusFilterLabel));
+    }
+
+    /// <summary>Selects all strategy filter options.</summary>
+    [RelayCommand]
+    private void SelectAllStrategyFilters()
+    {
+        foreach (var f in StrategyFilters)
+            f.IsSelected = true;
+    }
+
+    /// <summary>Deselects all strategy filter options.</summary>
+    [RelayCommand]
+    private void ClearStrategyFilters()
+    {
+        foreach (var f in StrategyFilters)
+            f.IsSelected = false;
+    }
+
+    /// <summary>Selects all status filter options.</summary>
+    [RelayCommand]
+    private void SelectAllStatusFilters()
+    {
+        foreach (var f in StatusFilters)
+            f.IsSelected = true;
+    }
+
+    /// <summary>Deselects all status filter options.</summary>
+    [RelayCommand]
+    private void ClearStatusFilters()
+    {
+        foreach (var f in StatusFilters)
+            f.IsSelected = false;
+    }
+
+    partial void OnFilterTickerChanged(string value) => ApplyFilters();
 
     private async Task SeedDummyDataAsync()
     {
