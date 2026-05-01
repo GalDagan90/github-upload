@@ -48,10 +48,12 @@ public partial class MainWindowViewModel : ViewModelBase
     /// Initialises the MainWindowViewModel and creates the three tab ViewModels.
     /// </summary>
     /// <param name="settingsService">Used to persist and restore the selected theme.</param>
-    public MainWindowViewModel(ISettingsService settingsService)
+    /// <param name="tradeRepository">Passed through to <see cref="TradeLog"/> for data access.</param>
+    /// <param name="dialogs">Passed through to <see cref="TradeLog"/> for confirmation prompts.</param>
+    public MainWindowViewModel(ISettingsService settingsService, ITradeRepository tradeRepository, IDialogService dialogs)
     {
         _settingsService = settingsService;
-        TradeLog  = new TradeLogViewModel();
+        TradeLog  = new TradeLogViewModel(tradeRepository, dialogs);
         Analytics = new AnalyticsViewModel();
         Calendar  = new CalendarViewModel();
     }

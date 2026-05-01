@@ -32,10 +32,12 @@ public partial class App : Application
             // 2. Build services.
             var settingsService  = new SqliteSettingsService();
             var tradeRepository  = new SqliteTradeRepository();
+            var dialogService    = new AvaloniaDialogService();
 
             // 3. Create the main ViewModel and restore persisted settings.
-            var mainVm = new MainWindowViewModel(settingsService);
+            var mainVm = new MainWindowViewModel(settingsService, tradeRepository, dialogService);
             await mainVm.InitializeAsync();
+            await mainVm.TradeLog.InitializeAsync();
 
             // 4. Apply the restored theme before the window is shown.
             ApplyTheme(mainVm.IsDarkTheme);

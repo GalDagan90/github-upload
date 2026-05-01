@@ -1,13 +1,153 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:TradingJournal.ViewModels"
+             xmlns:models="using:TradingJournal.Models"
+             xmlns:converters="using:TradingJournal.Converters"
              x:Class="TradingJournal.Views.TradeLogView"
              x:DataType="vm:TradeLogViewModel">
 
-    <TextBlock Text="Trade Log — coming in Step 4"
-               HorizontalAlignment="Center"
-               VerticalAlignment="Center"
-               FontSize="16"
-               Opacity="0.5"/>
+    <UserControl.Resources>
+        <converters:DateOnlyConverter x:Key="DateOnlyConverter"/>
+        <converters:DateOnlyStringConverter x:Key="DateOnlyStringConverter"/>
+    </UserControl.Resources>
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Toolbar -->
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal"
+                    Margin="8,8,8,4"
+                    Spacing="8">
+            <Button Content="+ Add Trade" Command="{Binding AddTradeCommand}"/>
+        </StackPanel>
+
+        <!-- Trade DataGrid -->
+        <DataGrid Grid.Row="1"
+                  x:Name="TradesGrid"
+                  ItemsSource="{Binding Trades}"
+                  SelectedItem="{Binding SelectedTrade}"
+                  RowEditEnded="OnRowEditEnded"
+                  LoadingRow="OnLoadingRow"
+                  PointerPressed="OnDataGridPointerPressed"
+                  AutoGenerateColumns="False"
+                  CanUserSortColumns="True"
+                  GridLinesVisibility="All"
+                  IsReadOnly="False"
+                  Margin="8,0,8,8">
+
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Delete Trade"
+                              Command="{ReflectionBinding DeleteTradeCommand}"
+                              CommandParameter="{ReflectionBinding SelectedTrade}"/>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+
+            <DataGrid.Columns>
+
+                <!-- Ticker -->
+                <DataGridTextColumn Header="Ticker"
+                                    Binding="{ReflectionBinding Ticker}"
+                                    Width="Auto"/>
+
+                <!-- Strike -->
+                <DataGridTextColumn Header="Strike"
+                                    Binding="{ReflectionBinding Strike}"
+                                    Width="Auto"/>
+
+                <!-- Strategy -->
+                <DataGridTemplateColumn Header="Strategy" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="models:Trade">
+                            <ComboBox SelectedItem="{Binding StrategyType}"
+                                      ItemsSource="{x:Static models:TradeLookups.StrategyTypes}"
+                                      SelectionChanged="OnEnumComboChanged"
+                                      HorizontalAlignment="Stretch"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <!-- Open Date -->
+                <DataGridTemplateColumn Header="Open Date" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="models:Trade">
+                            <CalendarDatePicker SelectedDate="{Binding OpenDate, Converter={StaticResource DateOnlyConverter}}"
+                                                SelectedDateChanged="OnDatePickerChanged"
+                                                PlaceholderText="dd/mm/yyyy"
+                                                HorizontalAlignment="Stretch"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <!-- Close Date -->
+                <DataGridTemplateColumn Header="Close Date" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="models:Trade">
+                            <CalendarDatePicker SelectedDate="{Binding CloseDate, Converter={StaticResource DateOnlyConverter}}"
+                                                SelectedDateChanged="OnDatePickerChanged"
+                                                PlaceholderText="dd/mm/yyyy"
+                                                HorizontalAlignment="Stretch"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <!-- Expiration Date -->
+                <DataGridTemplateColumn Header="Exp Date" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="models:Trade">
+                            <CalendarDatePicker SelectedDate="{Binding ExpirationDate, Converter={StaticResource DateOnlyConverter}}"
+                                                SelectedDateChanged="OnDatePickerChanged"
+                                                PlaceholderText="dd/mm/yyyy"
+                                                HorizontalAlignment="Stretch"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <!-- Entry Price -->
+                <DataGridTextColumn Header="Entry $"
+                                    Binding="{ReflectionBinding EntryPrice}"
+                                    Width="Auto"/>
+
+                <!-- Closing Price -->
+                <DataGridTextColumn Header="Closing $"
+                                    Binding="{ReflectionBinding ClosingPrice}"
+                                    Width="Auto"/>
+
+                <!-- Quantity -->
+                <DataGridTextColumn Header="Qty"
+                                    Binding="{ReflectionBinding Quantity}"
+                                    Width="Auto"/>
+
+                <!-- P/L -->
+                <DataGridTextColumn Header="P/L ($)"
+                                    Binding="{ReflectionBinding PL}"
+                                    Width="Auto"/>
+
+                <!-- G/L -->
+                <DataGridTextColumn Header="G/L ($)"
+                                    Binding="{ReflectionBinding GL}"
+                                    Width="Auto"/>
+
+                <!-- Status -->
+                <DataGridTemplateColumn Header="Status" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="models:Trade">
+                            <ComboBox SelectedItem="{Binding Status}"
+                                      ItemsSource="{x:Static models:TradeLookups.TradeStatuses}"
+                                      SelectionChanged="OnEnumComboChanged"
+                                      HorizontalAlignment="Stretch"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <!-- Notes -->
+                <DataGridTextColumn Header="Notes"
+                                    Binding="{ReflectionBinding Notes}"
+                                    Width="*"/>
+
+            </DataGrid.Columns>
+        </DataGrid>
+
+    </Grid>
 
 </UserControl>
