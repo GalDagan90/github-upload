@@ -38,6 +38,7 @@ public partial class App : Application
             var mainVm = new MainWindowViewModel(settingsService, tradeRepository, dialogService);
             await mainVm.InitializeAsync();
             await mainVm.TradeLog.InitializeAsync();
+            await mainVm.Analytics.InitializeAsync();
 
             // 4. Apply the restored theme before the window is shown.
             ApplyTheme(mainVm.IsDarkTheme);

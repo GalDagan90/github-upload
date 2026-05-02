@@ -168,43 +168,58 @@ Filtering is live (no submit button) and implemented in the ViewModel via a filt
 
 ### P/L and G/L Definitions
 
-- **P/L** = Closing Price − Entry Price (per share or per contract, in dollars)
-- **G/L** = P/L × 100 × Number of Contracts/Shares (total dollar gain/loss; ×100 is the standard options multiplier)
+- **Stock — P/L** = Closing Price − Entry Price; **G/L** = P/L × Quantity
+- **Options — P/L** = Entry Price − Closing Price (premium collected minus buyback); **G/L** = P/L × Quantity × 100
 
-### Date Range Filter
+### Data scope
 
-Displayed at the top of the Analytics tab:
+Only **closed and assigned** trades (non-null `CloseDate`, `Status` ≠ Open) are included in stats and charts. Open trades are excluded because they have no realized P/L.
 
+### Filters
+
+Displayed at the top of the Analytics tab. All filters apply simultaneously. Default state: All Time + empty ticker (shows all closed trades).
+
+**Date range** (segmented toggle buttons):
 - All Time
 - This Month
 - This Year
-- Custom (date range picker — start date and end date)
+- Custom (reveals a start-date and end-date `CalendarDatePicker` row)
 
-All charts and the summary stats row respect the selected date range.
+Applied against `CloseDate`.
+
+**Ticker** — free-text box (case-insensitive contains). Empty = all tickers. If the filter matches no trades, stats show zero and charts show empty series.
+
+### Live sync with Trade Log
+
+`AnalyticsViewModel` subscribes to a `TradesChangedMessage` via CommunityToolkit.Mvvm's `WeakReferenceMessenger`. `TradeLogViewModel` broadcasts this message after every save, add, or delete. On receipt, `AnalyticsViewModel` reloads from the repository and refreshes stats and charts. This keeps the Analytics tab current without polling or shared mutable state.
 
 ### Summary Stats Row
 
 | Stat | Description |
 |---|---|
-| Total P/L | Sum of per-unit P/L across all filtered trades |
-| Total G/L | Sum of total dollar G/L across all filtered trades |
-| Total Trades | Count of rows matching the current filter |
+| Total P/L | Sum of `PL` across filtered closed/assigned trades |
+| Total G/L | Sum of `GL` across filtered closed/assigned trades |
+| Total Trades | Count of filtered closed/assigned trades |
+
+P/L and G/L values are colored green if positive, red if negative (`SignBrushConverter`).
 
 ### Charts (LiveChartsCore.SkiaSharpView.Avalonia)
 
-Charts are arranged in a responsive grid that reflows based on available window width (2-column wide, 1-column narrow).
+Charts are arranged in a responsive grid that reflows based on available window width (2-column wide, 1-column narrow). Implemented using a `WrapPanel` where each chart container has a minimum width of ~450 px.
 
 | Chart | Type | Notes |
 |---|---|---|
-| Equity Curve | Line chart | Cumulative G/L over time, one point per closed trade |
-| P/L by Ticker | Bar chart | One bar per ticker |
-| G/L by Ticker | Bar chart | One bar per ticker |
-| P/L by Strategy | Bar chart | One bar per strategy type |
-| Strategies Used | Pie chart | Slice per strategy, sized by trade count |
+| Equity Curve | Line chart | Cumulative G/L over time, sorted by `CloseDate`, one point per trade |
+| P/L by Ticker | Bar chart | One bar per ticker; bar color green if sum ≥ 0, red if < 0 |
+| G/L by Ticker | Bar chart | One bar per ticker; same color rule |
+| P/L by Strategy | Bar chart | One bar per strategy type; same color rule |
+| Strategies Used | Pie chart | One slice per strategy, sized by trade count |
+
+Per-bar coloring: one `ColumnSeries` with one value per category, `Fill` set individually based on sign.
 
 **Color coding (fixed, theme-independent):**
-- Positive values → green
-- Negative values → red
+- Positive / zero values → green (`#16A34A`)
+- Negative values → red (`#DC2626`)
 
 ---
 
@@ -357,11 +372,14 @@ Running in Visual Studio (Debug) will never touch the production database.
 4. Trade Log — DataGrid with ObservableCollection<Trade>, all columns,
    dummy data, inline editing, Add Trade button
 5. Trade Log — Filters: ticker text search, strategy multi-select,
-   status multi-select, all live-filtering in ViewModel
-6. Analytics — Stats row: Total P/L, Total G/L, Total Trades,
-   date range filter wired up
-7. Analytics — Charts: equity curve first, then P/L by ticker,
-   G/L by ticker, P/L by strategy, strategies pie
+   status multi-select, all live-filtering in ViewModel ✓
+6. Analytics — ViewModel foundation: load trades via ITradeRepository,
+   WeakReferenceMessenger sync with Trade Log, date range filter,
+   ticker filter, stats row (Total P/L, Total G/L, Total Trades),
+   SignBrushConverter for value coloring
+7. Analytics — Charts: equity curve (line), P/L by ticker (bar),
+   G/L by ticker (bar), P/L by strategy (bar), strategies used (pie);
+   per-bar green/red coloring; responsive WrapPanel layout
 8. Calendar — monthly grid 42 cells, G/L per day, color coding,
    month navigation, Flyout popover showing trades
 9. Polish — input validation, empty states, error handling

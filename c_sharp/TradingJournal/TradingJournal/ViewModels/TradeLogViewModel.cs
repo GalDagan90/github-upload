@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using TradingJournal.Contracts;
 using TradingJournal.Models;
 
@@ -95,6 +96,7 @@ public partial class TradeLogViewModel : ViewModelBase
     {
         trade.Ticker = trade.Ticker?.ToUpperInvariant() ?? string.Empty;
         await _repository.UpdateAsync(trade);
+        WeakReferenceMessenger.Default.Send(new TradesChangedMessage());
     }
 
     /// <summary>Appends a new blank trade row and selects it for immediate editing.</summary>
@@ -111,6 +113,7 @@ public partial class TradeLogViewModel : ViewModelBase
             EntryPrice = 0m,
         };
         trade.Id = await _repository.AddAsync(trade);
+        WeakReferenceMessenger.Default.Send(new TradesChangedMessage());
         Trades.Add(trade);
         ApplyFilters();
         SelectedTrade = trade;
@@ -130,6 +133,7 @@ public partial class TradeLogViewModel : ViewModelBase
             return;
 
         await _repository.DeleteAsync(trade.Id);
+        WeakReferenceMessenger.Default.Send(new TradesChangedMessage());
         Trades.Remove(trade);
         ApplyFilters();
     }
