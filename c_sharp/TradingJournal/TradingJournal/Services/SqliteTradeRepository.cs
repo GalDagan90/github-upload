@@ -29,7 +29,7 @@ public class SqliteTradeRepository : ITradeRepository
         await using var command = connection.CreateCommand();
         command.CommandText = """
             SELECT Id, Ticker, StrategyType, Strike, OpenDate, CloseDate,
-                   ExpirationDate, EntryPrice, ClosingPrice, Quantity, PL, GL, Status, Notes
+                   ExpirationDate, EntryPrice, ClosingPrice, Quantity, Status, Notes
             FROM Trades
             ORDER BY OpenDate DESC
             """;
@@ -131,17 +131,15 @@ public class SqliteTradeRepository : ITradeRepository
         Id             = r.GetInt32(0),
         Ticker         = r.GetString(1),
         StrategyType   = (StrategyType)r.GetInt32(2),
-        Strike         = r.IsDBNull(3)  ? null : r.GetString(3),
+        Strike         = r.IsDBNull(3) ? null : r.GetString(3),
         OpenDate       = ParseDate(r.GetString(4)),
-        CloseDate      = r.IsDBNull(5)  ? null : ParseDate(r.GetString(5)),
-        ExpirationDate = r.IsDBNull(6)  ? null : ParseDate(r.GetString(6)),
+        CloseDate      = r.IsDBNull(5) ? null : ParseDate(r.GetString(5)),
+        ExpirationDate = r.IsDBNull(6) ? null : ParseDate(r.GetString(6)),
         EntryPrice     = ParseDecimal(r.GetString(7)),
-        ClosingPrice   = r.IsDBNull(8)  ? null : ParseDecimal(r.GetString(8)),
+        ClosingPrice   = r.IsDBNull(8) ? null : ParseDecimal(r.GetString(8)),
         Quantity       = r.GetInt32(9),
-        PL             = r.IsDBNull(10) ? null : ParseDecimal(r.GetString(10)),
-        GL             = r.IsDBNull(11) ? null : ParseDecimal(r.GetString(11)),
-        Status         = (TradeStatus)r.GetInt32(12),
-        Notes          = r.IsDBNull(13) ? null : r.GetString(13),
+        Status         = (TradeStatus)r.GetInt32(10),
+        Notes          = r.IsDBNull(11) ? null : r.GetString(11),
     };
 
     private static DateOnly ParseDate(string s) =>

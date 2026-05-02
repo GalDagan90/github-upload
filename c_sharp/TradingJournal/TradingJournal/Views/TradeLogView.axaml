@@ -9,6 +9,7 @@
     <UserControl.Resources>
         <converters:DateOnlyConverter x:Key="DateOnlyConverter"/>
         <converters:DateOnlyStringConverter x:Key="DateOnlyStringConverter"/>
+        <converters:TradeStatusBrushConverter x:Key="TradeStatusBrushConverter"/>
     </UserControl.Resources>
 
     <Grid RowDefinitions="Auto,*">
@@ -152,6 +153,18 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
+                <!-- Expiration Date -->
+                <DataGridTemplateColumn Header="Exp Date" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="models:Trade">
+                            <CalendarDatePicker SelectedDate="{Binding ExpirationDate, Converter={StaticResource DateOnlyConverter}}"
+                                                SelectedDateChanged="OnDatePickerChanged"
+                                                PlaceholderText="dd/mm/yyyy"
+                                                HorizontalAlignment="Stretch"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
                 <!-- Close Date -->
                 <DataGridTemplateColumn Header="Close Date" Width="Auto">
                     <DataGridTemplateColumn.CellTemplate>
@@ -164,17 +177,17 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
-                <!-- Expiration Date -->
-                <DataGridTemplateColumn Header="Exp Date" Width="Auto">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate x:DataType="models:Trade">
-                            <CalendarDatePicker SelectedDate="{Binding ExpirationDate, Converter={StaticResource DateOnlyConverter}}"
-                                                SelectedDateChanged="OnDatePickerChanged"
-                                                PlaceholderText="dd/mm/yyyy"
-                                                HorizontalAlignment="Stretch"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+                <!-- Days Open -->
+                <DataGridTextColumn Header="Days Open"
+                                    Binding="{ReflectionBinding DaysOpen}"
+                                    IsReadOnly="True"
+                                    Width="Auto"/>
+
+                <!-- Days to Expiration -->
+                <DataGridTextColumn Header="Days to Exp"
+                                    Binding="{ReflectionBinding DaysToExpiration}"
+                                    IsReadOnly="True"
+                                    Width="Auto"/>
 
                 <!-- Entry Price -->
                 <DataGridTextColumn Header="Entry $"
@@ -194,11 +207,13 @@
                 <!-- P/L -->
                 <DataGridTextColumn Header="P/L ($)"
                                     Binding="{ReflectionBinding PL}"
+                                    IsReadOnly="True"
                                     Width="Auto"/>
 
                 <!-- G/L -->
                 <DataGridTextColumn Header="G/L ($)"
                                     Binding="{ReflectionBinding GL}"
+                                    IsReadOnly="True"
                                     Width="Auto"/>
 
                 <!-- Status -->
@@ -208,6 +223,7 @@
                             <ComboBox SelectedItem="{Binding Status}"
                                       ItemsSource="{x:Static models:TradeLookups.TradeStatuses}"
                                       SelectionChanged="OnEnumComboChanged"
+                                      Foreground="{Binding Status, Converter={StaticResource TradeStatusBrushConverter}}"
                                       HorizontalAlignment="Stretch"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
