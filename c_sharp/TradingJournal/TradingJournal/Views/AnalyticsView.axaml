@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:TradingJournal.ViewModels"
              xmlns:converters="using:TradingJournal.Converters"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="TradingJournal.Views.AnalyticsView"
              x:DataType="vm:AnalyticsViewModel">
 
@@ -18,8 +19,6 @@
 
                 <!-- Date range toggles + ticker search -->
                 <WrapPanel>
-
-                    <!-- Segmented date-range selector -->
                     <StackPanel Orientation="Horizontal" Spacing="2" Margin="0,0,20,0">
                         <ToggleButton Content="All Time"
                                       IsChecked="{Binding IsAllTimeSelected, Mode=OneWay}"
@@ -35,7 +34,6 @@
                                       Command="{Binding SetRangeCustomCommand}"/>
                     </StackPanel>
 
-                    <!-- Ticker filter -->
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <TextBlock Text="Ticker:"
                                    VerticalAlignment="Center"
@@ -44,22 +42,17 @@
                                  Text="{Binding FilterTicker}"
                                  PlaceholderText="Filter by ticker..."/>
                     </StackPanel>
-
                 </WrapPanel>
 
                 <!-- Custom date pickers — only visible when Custom range is selected -->
                 <StackPanel Orientation="Horizontal"
                             Spacing="10"
                             IsVisible="{Binding IsCustomRange}">
-                    <TextBlock Text="From:"
-                               VerticalAlignment="Center"
-                               Opacity="0.7"/>
+                    <TextBlock Text="From:" VerticalAlignment="Center" Opacity="0.7"/>
                     <CalendarDatePicker SelectedDate="{ReflectionBinding CustomStart, Converter={StaticResource DateOnlyConverter}}"
                                         SelectedDateChanged="OnCustomStartChanged"
                                         PlaceholderText="Start date"/>
-                    <TextBlock Text="To:"
-                               VerticalAlignment="Center"
-                               Opacity="0.7"/>
+                    <TextBlock Text="To:" VerticalAlignment="Center" Opacity="0.7"/>
                     <CalendarDatePicker SelectedDate="{ReflectionBinding CustomEnd, Converter={StaticResource DateOnlyConverter}}"
                                         SelectedDateChanged="OnCustomEndChanged"
                                         PlaceholderText="End date"/>
@@ -70,64 +63,95 @@
             <!-- ── Summary Stats Row ── -->
             <StackPanel Orientation="Horizontal" Spacing="12">
 
-                <!-- Total P/L -->
                 <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-                        BorderThickness="1"
-                        CornerRadius="8"
-                        Padding="20,14"
-                        MinWidth="180">
+                        BorderThickness="1" CornerRadius="8" Padding="20,14" MinWidth="180">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Total P/L"
-                                   FontSize="12"
-                                   Opacity="0.6"/>
+                        <TextBlock Text="Total P/L" FontSize="12" Opacity="0.6"/>
                         <TextBlock Text="{Binding TotalPLFormatted}"
-                                   FontSize="22"
-                                   FontWeight="SemiBold"
+                                   FontSize="22" FontWeight="SemiBold"
                                    Foreground="{Binding TotalPL, Converter={StaticResource SignBrushConverter}}"/>
                     </StackPanel>
                 </Border>
 
-                <!-- Total G/L -->
                 <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-                        BorderThickness="1"
-                        CornerRadius="8"
-                        Padding="20,14"
-                        MinWidth="180">
+                        BorderThickness="1" CornerRadius="8" Padding="20,14" MinWidth="180">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Total G/L"
-                                   FontSize="12"
-                                   Opacity="0.6"/>
+                        <TextBlock Text="Total G/L" FontSize="12" Opacity="0.6"/>
                         <TextBlock Text="{Binding TotalGLFormatted}"
-                                   FontSize="22"
-                                   FontWeight="SemiBold"
+                                   FontSize="22" FontWeight="SemiBold"
                                    Foreground="{Binding TotalGL, Converter={StaticResource SignBrushConverter}}"/>
                     </StackPanel>
                 </Border>
 
-                <!-- Total Trades -->
                 <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-                        BorderThickness="1"
-                        CornerRadius="8"
-                        Padding="20,14"
-                        MinWidth="140">
+                        BorderThickness="1" CornerRadius="8" Padding="20,14" MinWidth="140">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Total Trades"
-                                   FontSize="12"
-                                   Opacity="0.6"/>
+                        <TextBlock Text="Total Trades" FontSize="12" Opacity="0.6"/>
                         <TextBlock Text="{Binding TotalTradesFormatted}"
-                                   FontSize="22"
-                                   FontWeight="SemiBold"/>
+                                   FontSize="22" FontWeight="SemiBold"/>
                     </StackPanel>
                 </Border>
 
             </StackPanel>
 
-            <!-- ── Charts placeholder (Step 7) ── -->
-            <TextBlock Text="Charts — coming in Step 7"
-                       HorizontalAlignment="Center"
-                       Margin="0,40"
-                       FontSize="14"
-                       Opacity="0.35"/>
+            <!-- ── Charts ── -->
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+
+                <!-- P/L by Ticker -->
+                <Border Grid.Row="0" Grid.Column="0"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="8" Margin="0,0,6,6">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="P/L by Ticker" FontWeight="SemiBold" Margin="4,4,4,0"/>
+                        <lvc:CartesianChart Series="{Binding PLByTickerSeries}"
+                                            XAxes="{Binding PLByTickerXAxes}"
+                                            YAxes="{Binding CurrencyYAxes}"
+                                            Height="260"
+                                            LegendPosition="Hidden"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- G/L by Ticker -->
+                <Border Grid.Row="0" Grid.Column="1"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="8" Margin="6,0,0,6">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="G/L by Ticker" FontWeight="SemiBold" Margin="4,4,4,0"/>
+                        <lvc:CartesianChart Series="{Binding GLByTickerSeries}"
+                                            XAxes="{Binding GLByTickerXAxes}"
+                                            YAxes="{Binding CurrencyYAxes}"
+                                            Height="260"
+                                            LegendPosition="Hidden"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- P/L by Strategy -->
+                <Border Grid.Row="1" Grid.Column="0"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="8" Margin="0,0,6,0">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="P/L by Strategy" FontWeight="SemiBold" Margin="4,4,4,0"/>
+                        <lvc:CartesianChart Series="{Binding PLByStrategySeries}"
+                                            XAxes="{Binding PLByStrategyXAxes}"
+                                            YAxes="{Binding CurrencyYAxes}"
+                                            Height="260"
+                                            LegendPosition="Hidden"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Strategies Used (pie) -->
+                <Border Grid.Row="1" Grid.Column="1"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="8" Margin="6,0,0,0">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Strategies Used" FontWeight="SemiBold" Margin="4,4,4,0"/>
+                        <lvc:PieChart Series="{Binding StrategiesPieSeries}"
+                                      LegendPosition="Right"
+                                      Height="260"/>
+                    </StackPanel>
+                </Border>
+
+            </Grid>
 
         </StackPanel>
     </ScrollViewer>
