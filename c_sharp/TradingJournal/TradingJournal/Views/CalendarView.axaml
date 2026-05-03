@@ -1,13 +1,135 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:TradingJournal.ViewModels"
+             xmlns:converters="using:TradingJournal.Converters"
              x:Class="TradingJournal.Views.CalendarView"
              x:DataType="vm:CalendarViewModel">
 
-    <TextBlock Text="Calendar — coming in Step 8"
-               HorizontalAlignment="Center"
-               VerticalAlignment="Center"
-               FontSize="16"
-               Opacity="0.5"/>
+    <UserControl.Resources>
+        <converters:SignBrushConverter x:Key="SignBrushConverter"/>
+    </UserControl.Resources>
+
+    <ScrollViewer>
+        <StackPanel Margin="12" Spacing="8">
+
+            <!-- ── Month navigation ── -->
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Spacing="16"
+                        Margin="0,4,0,8">
+                <Button Content="◀"
+                        Command="{Binding PreviousMonthCommand}"
+                        Width="36" Height="36"
+                        FontSize="14"/>
+                <TextBlock Text="{Binding CurrentMonthLabel}"
+                           FontSize="18" FontWeight="SemiBold"
+                           VerticalAlignment="Center"
+                           MinWidth="200"
+                           TextAlignment="Center"/>
+                <Button Content="▶"
+                        Command="{Binding NextMonthCommand}"
+                        Width="36" Height="36"
+                        FontSize="14"/>
+            </StackPanel>
+
+            <!-- ── Day-of-week headers ── -->
+            <UniformGrid Columns="7">
+                <TextBlock Text="Mon" TextAlignment="Center" FontWeight="SemiBold" Padding="4,6" Opacity="0.7"/>
+                <TextBlock Text="Tue" TextAlignment="Center" FontWeight="SemiBold" Padding="4,6" Opacity="0.7"/>
+                <TextBlock Text="Wed" TextAlignment="Center" FontWeight="SemiBold" Padding="4,6" Opacity="0.7"/>
+                <TextBlock Text="Thu" TextAlignment="Center" FontWeight="SemiBold" Padding="4,6" Opacity="0.7"/>
+                <TextBlock Text="Fri" TextAlignment="Center" FontWeight="SemiBold" Padding="4,6" Opacity="0.7"/>
+                <TextBlock Text="Sat" TextAlignment="Center" FontWeight="SemiBold" Padding="4,6" Opacity="0.7"/>
+                <TextBlock Text="Sun" TextAlignment="Center" FontWeight="SemiBold" Padding="4,6" Opacity="0.7"/>
+            </UniformGrid>
+
+            <!-- ── 42-cell calendar grid ── -->
+
+            <ItemsControl ItemsSource="{Binding Days}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="7"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CalendarDayViewModel">
+                        <Border Background="{Binding CellColor}"
+                                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                                BorderThickness="0.5"
+                                MinHeight="80"
+                                Padding="6,4"
+                                Cursor="Hand"
+                                PointerPressed="DayCell_PointerPressed">
+
+                            <FlyoutBase.AttachedFlyout>
+                                <Flyout Placement="Bottom">
+                                    <ScrollViewer MaxHeight="280" MaxWidth="280">
+                                        <StackPanel Spacing="2" MinWidth="220">
+                                            <ItemsControl ItemsSource="{Binding Trades}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:TradeSummary">
+                                                        <Grid ColumnDefinitions="*,Auto,Auto"
+                                                              Margin="2,4">
+                                                            <TextBlock Grid.Column="0"
+                                                                       Text="{Binding Ticker}"
+                                                                       FontWeight="SemiBold"
+                                                                       FontSize="13"/>
+                                                            <TextBlock Grid.Column="1"
+                                                                       Text="{Binding Strategy}"
+                                                                       Margin="12,0,12,0"
+                                                                       Opacity="0.65"
+                                                                       FontSize="12"
+                                                                       VerticalAlignment="Center"/>
+                                                            <TextBlock Grid.Column="2"
+                                                                       Text="{Binding GLFormatted}"
+                                                                       FontSize="13"/>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </ScrollViewer>
+                                </Flyout>
+                            </FlyoutBase.AttachedFlyout>
+
+                            <Grid RowDefinitions="Auto,*">
+                                <TextBlock Grid.Row="0"
+                                           Text="{Binding DayNumber}"
+                                           FontWeight="SemiBold"
+                                           FontSize="13"
+                                           Opacity="{Binding TextOpacity}"/>
+                                <TextBlock Grid.Row="1"
+                                           Text="{Binding TotalGLFormatted}"
+                                           FontSize="15"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Bottom"
+                                           Opacity="{Binding TextOpacity}"/>
+                            </Grid>
+
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- ── Month total ── -->
+            <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                    BorderThickness="1" CornerRadius="8"
+                    Padding="16,10"
+                    HorizontalAlignment="Right">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="Month Total G/L:"
+                               FontSize="14"
+                               VerticalAlignment="Center"
+                               Opacity="0.7"/>
+                    <TextBlock Text="{Binding MonthTotalGLFormatted}"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"
+                               Foreground="{Binding MonthTotalGL, Converter={StaticResource SignBrushConverter}}"/>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
 
 </UserControl>

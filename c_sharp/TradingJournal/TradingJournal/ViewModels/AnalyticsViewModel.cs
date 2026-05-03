@@ -231,8 +231,7 @@ public partial class AnalyticsViewModel : ViewModelBase
             new ColumnSeries<ObservableValue>
             {
                 Values        = groups.Select(g => new ObservableValue(g.Value)).ToArray(),
-                Fill          = new SolidColorPaint(SKColor.Parse("#16A34A")),
-                NegativesFill = new SolidColorPaint(SKColor.Parse("#DC2626")),
+                Fill          = new SolidColorPaint(SKColor.Parse("#2563EB")),
                 MaxBarWidth   = 40,
             }
         ];

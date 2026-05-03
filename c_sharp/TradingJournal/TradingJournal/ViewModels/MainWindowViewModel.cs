@@ -55,7 +55,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _settingsService = settingsService;
         TradeLog  = new TradeLogViewModel(tradeRepository, dialogs);
         Analytics = new AnalyticsViewModel(tradeRepository);
-        Calendar  = new CalendarViewModel();
+        Calendar  = new CalendarViewModel(tradeRepository);
     }
 
     /// <summary>

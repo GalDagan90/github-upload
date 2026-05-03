@@ -39,6 +39,7 @@ public partial class App : Application
             await mainVm.InitializeAsync();
             await mainVm.TradeLog.InitializeAsync();
             await mainVm.Analytics.InitializeAsync();
+            await mainVm.Calendar.InitializeAsync();
 
             // 4. Apply the restored theme before the window is shown.
             ApplyTheme(mainVm.IsDarkTheme);

@@ -209,17 +209,10 @@ Charts are arranged in a responsive grid that reflows based on available window 
 
 | Chart | Type | Notes |
 |---|---|---|
-| Equity Curve | Line chart | Cumulative G/L over time, sorted by `CloseDate`, one point per trade |
-| P/L by Ticker | Bar chart | One bar per ticker; bar color green if sum ≥ 0, red if < 0 |
-| G/L by Ticker | Bar chart | One bar per ticker; same color rule |
-| P/L by Strategy | Bar chart | One bar per strategy type; same color rule |
+| P/L by Ticker | Bar chart | One bar per ticker; single uniform color |
+| G/L by Ticker | Bar chart | One bar per ticker; single uniform color |
+| P/L by Strategy | Bar chart | One bar per strategy type; single uniform color |
 | Strategies Used | Pie chart | One slice per strategy, sized by trade count |
-
-Per-bar coloring: one `ColumnSeries` with one value per category, `Fill` set individually based on sign.
-
-**Color coding (fixed, theme-independent):**
-- Positive / zero values → green (`#16A34A`)
-- Negative values → red (`#DC2626`)
 
 ---
 
@@ -377,9 +370,9 @@ Running in Visual Studio (Debug) will never touch the production database.
    WeakReferenceMessenger sync with Trade Log, date range filter,
    ticker filter, stats row (Total P/L, Total G/L, Total Trades),
    SignBrushConverter for value coloring
-7. Analytics — Charts: equity curve (line), P/L by ticker (bar),
-   G/L by ticker (bar), P/L by strategy (bar), strategies used (pie);
-   per-bar green/red coloring; responsive WrapPanel layout
+7. Analytics — Charts: P/L by ticker (bar), G/L by ticker (bar),
+   P/L by strategy (bar), strategies used (pie); single uniform color
+   per chart; fixed 2-column Grid layout ✓
 8. Calendar — monthly grid 42 cells, G/L per day, color coding,
    month navigation, Flyout popover showing trades
 9. Polish — input validation, empty states, error handling
