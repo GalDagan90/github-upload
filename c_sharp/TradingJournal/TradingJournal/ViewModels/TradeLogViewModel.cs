@@ -77,14 +77,22 @@ public partial class TradeLogViewModel : ViewModelBase
     /// </summary>
     public async Task InitializeAsync()
     {
-        var trades = await _repository.GetAllAsync();
-        foreach (var t in trades)
-            Trades.Add(t);
+        try
+        {
+            var trades = await _repository.GetAllAsync();
+            foreach (var t in trades)
+                Trades.Add(t);
 
-        if (Trades.Count == 0)
-            await SeedDummyDataAsync();
+            if (Trades.Count == 0)
+                await SeedDummyDataAsync();
 
-        ApplyFilters();
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            await _dialogs.ShowErrorAsync("Database Error",
+                $"Could not load trades from the database.\n\n{ex.Message}");
+        }
     }
 
     /// <summary>
@@ -95,8 +103,16 @@ public partial class TradeLogViewModel : ViewModelBase
     public async Task SaveTradeAsync(Trade trade)
     {
         trade.Ticker = trade.Ticker?.ToUpperInvariant() ?? string.Empty;
-        await _repository.UpdateAsync(trade);
-        WeakReferenceMessenger.Default.Send(new TradesChangedMessage());
+        try
+        {
+            await _repository.UpdateAsync(trade);
+            WeakReferenceMessenger.Default.Send(new TradesChangedMessage());
+        }
+        catch (Exception ex)
+        {
+            await _dialogs.ShowErrorAsync("Database Error",
+                $"Could not save the trade.\n\n{ex.Message}");
+        }
     }
 
     /// <summary>Appends a new blank trade row and selects it for immediate editing.</summary>
@@ -112,11 +128,19 @@ public partial class TradeLogViewModel : ViewModelBase
             Quantity = 1,
             EntryPrice = 0m,
         };
-        trade.Id = await _repository.AddAsync(trade);
-        WeakReferenceMessenger.Default.Send(new TradesChangedMessage());
-        Trades.Add(trade);
-        ApplyFilters();
-        SelectedTrade = trade;
+        try
+        {
+            trade.Id = await _repository.AddAsync(trade);
+            WeakReferenceMessenger.Default.Send(new TradesChangedMessage());
+            Trades.Add(trade);
+            ApplyFilters();
+            SelectedTrade = trade;
+        }
+        catch (Exception ex)
+        {
+            await _dialogs.ShowErrorAsync("Database Error",
+                $"Could not add the trade.\n\n{ex.Message}");
+        }
     }
 
     /// <summary>
@@ -132,10 +156,18 @@ public partial class TradeLogViewModel : ViewModelBase
         if (!await _dialogs.ConfirmAsync($"Delete the {trade.Ticker} trade? This cannot be undone."))
             return;
 
-        await _repository.DeleteAsync(trade.Id);
-        WeakReferenceMessenger.Default.Send(new TradesChangedMessage());
-        Trades.Remove(trade);
-        ApplyFilters();
+        try
+        {
+            await _repository.DeleteAsync(trade.Id);
+            WeakReferenceMessenger.Default.Send(new TradesChangedMessage());
+            Trades.Remove(trade);
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            await _dialogs.ShowErrorAsync("Database Error",
+                $"Could not delete the trade.\n\n{ex.Message}");
+        }
     }
 
     /// <summary>

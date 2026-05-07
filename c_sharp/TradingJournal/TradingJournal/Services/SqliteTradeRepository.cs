@@ -36,7 +36,16 @@ public class SqliteTradeRepository : ITradeRepository
 
         await using var reader = await command.ExecuteReaderAsync();
         while (await reader.ReadAsync())
-            trades.Add(MapRow(reader));
+        {
+            try
+            {
+                trades.Add(MapRow(reader));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TradingJournal] Skipped corrupt trade row: {ex.Message}");
+            }
+        }
 
         return trades;
     }

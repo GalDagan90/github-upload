@@ -24,6 +24,7 @@ namespace TradingJournal.ViewModels;
 public partial class AnalyticsViewModel : ViewModelBase
 {
     private readonly ITradeRepository _repository;
+    private readonly IDialogService _dialogs;
     private List<Trade> _closedTrades = new();
 
     // ── Filters ────────────────────────────────────────────────────────────
@@ -115,9 +116,11 @@ public partial class AnalyticsViewModel : ViewModelBase
     /// Initialises the ViewModel with data access and subscribes to trade-change notifications.
     /// </summary>
     /// <param name="repository">Used to reload trade data when notified of changes.</param>
-    public AnalyticsViewModel(ITradeRepository repository)
+    /// <param name="dialogs">Used to surface database errors to the user.</param>
+    public AnalyticsViewModel(ITradeRepository repository, IDialogService dialogs)
     {
         _repository = repository;
+        _dialogs = dialogs;
         WeakReferenceMessenger.Default.Register<TradesChangedMessage>(this,
             async (_, _) => await ReloadAsync());
     }
@@ -127,11 +130,19 @@ public partial class AnalyticsViewModel : ViewModelBase
 
     private async Task ReloadAsync()
     {
-        var all = await _repository.GetAllAsync();
-        _closedTrades = all
-            .Where(t => t.Status != TradeStatus.Open && t.CloseDate.HasValue)
-            .ToList();
-        Refresh();
+        try
+        {
+            var all = await _repository.GetAllAsync();
+            _closedTrades = all
+                .Where(t => t.Status != TradeStatus.Open && t.CloseDate.HasValue)
+                .ToList();
+            Refresh();
+        }
+        catch (Exception ex)
+        {
+            await _dialogs.ShowErrorAsync("Database Error",
+                $"Could not load trades for analytics.\n\n{ex.Message}");
+        }
     }
 
     // ── Filtering & refresh ─────────────────────────────────────────────────

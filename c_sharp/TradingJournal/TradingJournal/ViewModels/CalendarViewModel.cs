@@ -19,6 +19,7 @@ namespace TradingJournal.ViewModels;
 public partial class CalendarViewModel : ViewModelBase
 {
     private readonly ITradeRepository _repository;
+    private readonly IDialogService _dialogs;
     private List<Trade> _allTrades = [];
     private int _currentYear;
     private int _currentMonth;
@@ -43,9 +44,11 @@ public partial class CalendarViewModel : ViewModelBase
     /// Initialises the ViewModel for the current month and subscribes to trade-change notifications.
     /// </summary>
     /// <param name="repository">Provides access to trade data for G/L calculations.</param>
-    public CalendarViewModel(ITradeRepository repository)
+    /// <param name="dialogs">Used to surface database errors to the user.</param>
+    public CalendarViewModel(ITradeRepository repository, IDialogService dialogs)
     {
         _repository = repository;
+        _dialogs = dialogs;
         var today = DateOnly.FromDateTime(DateTime.Today);
         _currentYear  = today.Year;
         _currentMonth = today.Month;
@@ -59,9 +62,17 @@ public partial class CalendarViewModel : ViewModelBase
 
     private async Task ReloadAsync()
     {
-        var all = await _repository.GetAllAsync();
-        _allTrades = [.. all];
-        BuildGrid();
+        try
+        {
+            var all = await _repository.GetAllAsync();
+            _allTrades = [.. all];
+            BuildGrid();
+        }
+        catch (Exception ex)
+        {
+            await _dialogs.ShowErrorAsync("Database Error",
+                $"Could not load trades for the calendar.\n\n{ex.Message}");
+        }
     }
 
     /// <summary>Navigates to the previous calendar month.</summary>

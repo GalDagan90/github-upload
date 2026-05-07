@@ -38,36 +38,44 @@ public class DatabaseInitializer : IDatabaseInitializer
     /// <inheritdoc/>
     public async Task InitializeAsync()
     {
-        await using var connection = new SqliteConnection($"Data Source={DatabasePath}");
-        await connection.OpenAsync();
+        try
+        {
+            await using var connection = new SqliteConnection($"Data Source={DatabasePath}");
+            await connection.OpenAsync();
 
-        await using var command = connection.CreateCommand();
-        command.CommandText = """
-            CREATE TABLE IF NOT EXISTS Trades (
-                Id              INTEGER PRIMARY KEY AUTOINCREMENT,
-                Ticker          TEXT    NOT NULL,
-                StrategyType    INTEGER NOT NULL,
-                Strike          TEXT,
-                OpenDate        TEXT    NOT NULL,
-                CloseDate       TEXT,
-                ExpirationDate  TEXT,
-                EntryPrice      TEXT    NOT NULL,
-                ClosingPrice    TEXT,
-                Quantity        INTEGER NOT NULL,
-                PL              TEXT,
-                GL              TEXT,
-                Status          INTEGER NOT NULL DEFAULT 0,
-                Notes           TEXT
-            );
+            await using var command = connection.CreateCommand();
+            command.CommandText = """
+                CREATE TABLE IF NOT EXISTS Trades (
+                    Id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Ticker          TEXT    NOT NULL,
+                    StrategyType    INTEGER NOT NULL,
+                    Strike          TEXT,
+                    OpenDate        TEXT    NOT NULL,
+                    CloseDate       TEXT,
+                    ExpirationDate  TEXT,
+                    EntryPrice      TEXT    NOT NULL,
+                    ClosingPrice    TEXT,
+                    Quantity        INTEGER NOT NULL,
+                    PL              TEXT,
+                    GL              TEXT,
+                    Status          INTEGER NOT NULL DEFAULT 0,
+                    Notes           TEXT
+                );
 
-            CREATE TABLE IF NOT EXISTS Settings (
-                Key     TEXT PRIMARY KEY,
-                Value   TEXT NOT NULL
-            );
+                CREATE TABLE IF NOT EXISTS Settings (
+                    Key     TEXT PRIMARY KEY,
+                    Value   TEXT NOT NULL
+                );
 
-            INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('SchemaVersion', '1');
-            """;
+                INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('SchemaVersion', '1');
+                """;
 
-        await command.ExecuteNonQueryAsync();
+            await command.ExecuteNonQueryAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                $"Failed to initialize the TradingJournal database at '{DatabasePath}'.", ex);
+        }
     }
 }

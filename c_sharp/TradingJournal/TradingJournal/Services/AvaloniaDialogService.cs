@@ -5,6 +5,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using TradingJournal.Contracts;
 using TradingJournal.Views;
 
+
 namespace TradingJournal.Services;
 
 /// <summary>
@@ -16,11 +17,20 @@ public sealed class AvaloniaDialogService : IDialogService
     /// <inheritdoc/>
     public async Task<bool> ConfirmAsync(string message)
     {
-        var owner = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
-                    ?.MainWindow;
-
+        var owner = GetMainWindow();
         if (owner is null) return false;
-
         return await new ConfirmDeleteDialog(message).ShowDialog<bool>(owner);
     }
+
+    /// <inheritdoc/>
+    public async Task ShowErrorAsync(string title, string message)
+    {
+        var owner = GetMainWindow();
+        if (owner is null) return;
+        await new ErrorDialog(title, message).ShowDialog(owner);
+    }
+
+    private static Window? GetMainWindow() =>
+        (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+        ?.MainWindow;
 }

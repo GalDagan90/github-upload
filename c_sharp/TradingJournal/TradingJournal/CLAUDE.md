@@ -376,3 +376,24 @@ Running in Visual Studio (Debug) will never touch the production database.
 8. Calendar — monthly grid 42 cells, G/L per day, color coding,
    month navigation, Flyout popover showing trades
 9. Polish — input validation, empty states, error handling
+
+---
+
+## Polish Checklist (Step 9)
+
+### Error Handling (Critical)
+- Wrap all `SqliteTradeRepository` methods (`GetAllAsync`, `AddAsync`, `UpdateAsync`, `DeleteAsync`) in try/catch; surface errors to the ViewModel
+- Wrap `SqliteSettingsService` methods in try/catch
+- Wrap `DatabaseInitializer.InitializeAsync()` in try/catch; on failure show an error dialog and close the app gracefully — never silently crash
+- Wrap `App.axaml.cs` init calls in try/catch with a user-visible error dialog
+- Guard `SqliteTradeRepository.MapRow()` date and decimal parsing in try/catch; log or skip corrupt rows rather than throwing
+
+### Input Validation (UX)
+- Before saving a trade, validate: Ticker is non-empty, EntryPrice >= 0, Quantity > 0, CloseDate >= OpenDate when both are set
+- Show a validation error dialog (or inline message) and abort the save if any rule fails
+- Discard the invalid edit without writing to the database
+
+### Empty States (UX)
+- Remove the dummy-data seed (`SeedDummyDataAsync`); replace with a "No trades yet — click Add Trade to get started" placeholder in the Trade Log when the collection is empty
+- In Analytics, show a "No closed trades match the current filters" message instead of empty/zero charts
+- In Calendar, show nothing in empty day cells (current behavior is acceptable); Flyout only opens when trades exist (already implemented)
