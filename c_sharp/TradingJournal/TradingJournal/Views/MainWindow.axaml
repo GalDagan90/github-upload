@@ -4,8 +4,9 @@
         x:Class="TradingJournal.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Trading Journal"
-        Width="1200" Height="800"
-        MinWidth="900" MinHeight="600">
+        Width="1200" Height="700"
+        MinWidth="900" MinHeight="600"
+        WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
         <!-- Browser-style tab: rounded top corners, background-based selection indicator -->
