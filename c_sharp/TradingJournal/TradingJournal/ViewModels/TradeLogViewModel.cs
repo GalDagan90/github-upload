@@ -97,12 +97,22 @@ public partial class TradeLogViewModel : ViewModelBase
 
     /// <summary>
     /// Persists an edited trade row. Normalises <see cref="Trade.Ticker"/> to upper-case.
+    /// Validates the trade before writing when its status is Closed or Assigned;
+    /// open trades are saved permissively.
     /// Called from the View's event handlers on every committed edit.
     /// </summary>
     /// <param name="trade">The trade row that was just edited.</param>
     public async Task SaveTradeAsync(Trade trade)
     {
         trade.Ticker = trade.Ticker?.ToUpperInvariant() ?? string.Empty;
+
+        var error = Validate(trade);
+        if (error is not null)
+        {
+            await _dialogs.ShowErrorAsync("Validation Error", error);
+            return;
+        }
+
         try
         {
             await _repository.UpdateAsync(trade);
@@ -113,6 +123,37 @@ public partial class TradeLogViewModel : ViewModelBase
             await _dialogs.ShowErrorAsync("Database Error",
                 $"Could not save the trade.\n\n{ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Validates a trade before it is persisted.
+    /// Open trades are always considered valid — incomplete fields are expected while a position is live.
+    /// Closed and assigned trades must have all fields required to compute P/L and appear correctly
+    /// in Analytics and the Calendar.
+    /// </summary>
+    /// <param name="trade">The trade to validate.</param>
+    /// <returns>
+    /// A user-facing error message if validation fails; <see langword="null"/> if the trade is valid.
+    /// </returns>
+    private static string? Validate(Trade trade)
+    {
+        if (trade.Status == TradeStatus.Open)
+            return null;
+
+        if (string.IsNullOrWhiteSpace(trade.Ticker))
+            return "Ticker must not be empty.";
+        if (trade.EntryPrice < 0)
+            return "Entry price must be zero or greater.";
+        if (trade.Quantity <= 0)
+            return "Quantity must be greater than zero.";
+        if (trade.ClosingPrice is null)
+            return "Closing price is required for closed or assigned trades.";
+        if (trade.CloseDate is null)
+            return "Close date is required for closed or assigned trades.";
+        if (trade.CloseDate < trade.OpenDate)
+            return "Close date must be on or after the open date.";
+
+        return null;
     }
 
     /// <summary>Appends a new blank trade row and selects it for immediate editing.</summary>

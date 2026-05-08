@@ -389,9 +389,16 @@ Running in Visual Studio (Debug) will never touch the production database.
 - Guard `SqliteTradeRepository.MapRow()` date and decimal parsing in try/catch; log or skip corrupt rows rather than throwing
 
 ### Input Validation (UX)
-- Before saving a trade, validate: Ticker is non-empty, EntryPrice >= 0, Quantity > 0, CloseDate >= OpenDate when both are set
-- Show a validation error dialog (or inline message) and abort the save if any rule fails
-- Discard the invalid edit without writing to the database
+- Trades are auto-saved on every committed cell edit (row edit end, date picker change, combo change) via `SaveTradeAsync` in `TradeLogViewModel`
+- **Open trades** are saved permissively — incomplete fields (no ClosingPrice, no CloseDate) are expected while a position is live
+- **Closed and Assigned trades** are validated before writing to the database; if any rule fails, an error dialog is shown and the DB write is aborted (the invalid value remains visible in the grid so the user can correct it)
+- Validation rules for Closed/Assigned trades (enforced in `TradeLogViewModel.Validate`):
+  - Ticker must not be empty
+  - EntryPrice must be ≥ 0
+  - Quantity must be > 0
+  - ClosingPrice must not be null
+  - CloseDate must not be null
+  - CloseDate must be ≥ OpenDate
 
 ### Empty States (UX)
 - Remove the dummy-data seed (`SeedDummyDataAsync`); replace with a "No trades yet — click Add Trade to get started" placeholder in the Trade Log when the collection is empty
