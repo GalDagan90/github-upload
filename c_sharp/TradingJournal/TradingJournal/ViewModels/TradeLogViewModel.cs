@@ -71,9 +71,11 @@ public partial class TradeLogViewModel : ViewModelBase
             .ToList();
     }
 
+    /// <summary>True when the trade collection contains no rows — drives the empty state placeholder.</summary>
+    public bool HasNoTrades => Trades.Count == 0;
+
     /// <summary>
     /// Loads all persisted trades from the database into <see cref="Trades"/> then applies filters.
-    /// Seeds three sample rows on first launch so the grid is never empty.
     /// </summary>
     public async Task InitializeAsync()
     {
@@ -82,9 +84,6 @@ public partial class TradeLogViewModel : ViewModelBase
             var trades = await _repository.GetAllAsync();
             foreach (var t in trades)
                 Trades.Add(t);
-
-            if (Trades.Count == 0)
-                await SeedDummyDataAsync();
 
             ApplyFilters();
         }
@@ -236,6 +235,7 @@ public partial class TradeLogViewModel : ViewModelBase
 
         OnPropertyChanged(nameof(StrategyFilterLabel));
         OnPropertyChanged(nameof(StatusFilterLabel));
+        OnPropertyChanged(nameof(HasNoTrades));
     }
 
     /// <summary>Selects all strategy filter options.</summary>
@@ -271,56 +271,4 @@ public partial class TradeLogViewModel : ViewModelBase
     }
 
     partial void OnFilterTickerChanged(string value) => ApplyFilters();
-
-    private async Task SeedDummyDataAsync()
-    {
-        var samples = new[]
-        {
-            new Trade
-            {
-                Ticker = "AAPL",
-                StrategyType = StrategyType.CoveredCall,
-                Strike = "185",
-                OpenDate = new DateOnly(2026, 3, 10),
-                CloseDate = new DateOnly(2026, 4, 5),
-                ExpirationDate = new DateOnly(2026, 4, 18),
-                EntryPrice = 3.50m,
-                ClosingPrice = 0.10m,
-                Quantity = 2,
-                Status = TradeStatus.Closed,
-                Notes = "Closed early at 97% profit",
-            },
-            new Trade
-            {
-                Ticker = "SPY",
-                StrategyType = StrategyType.BullPutCreditSpread,
-                Strike = "500/495",
-                OpenDate = new DateOnly(2026, 4, 1),
-                ExpirationDate = new DateOnly(2026, 4, 30),
-                EntryPrice = 1.25m,
-                Quantity = 5,
-                Status = TradeStatus.Open,
-            },
-            new Trade
-            {
-                Ticker = "TSLA",
-                StrategyType = StrategyType.ShortPut,
-                Strike = "200",
-                OpenDate = new DateOnly(2026, 3, 20),
-                CloseDate = new DateOnly(2026, 4, 10),
-                ExpirationDate = new DateOnly(2026, 4, 17),
-                EntryPrice = 4.00m,
-                ClosingPrice = 0.00m,
-                Quantity = 1,
-                Status = TradeStatus.Assigned,
-                Notes = "Assigned at expiration",
-            },
-        };
-
-        foreach (var t in samples)
-        {
-            t.Id = await _repository.AddAsync(t);
-            Trades.Add(t);
-        }
-    }
 }

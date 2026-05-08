@@ -403,4 +403,3 @@ Running in Visual Studio (Debug) will never touch the production database.
 ### Empty States (UX)
 - Remove the dummy-data seed (`SeedDummyDataAsync`); replace with a "No trades yet — click Add Trade to get started" placeholder in the Trade Log when the collection is empty
 - In Analytics, show a "No closed trades match the current filters" message instead of empty/zero charts
-- In Calendar, show nothing in empty day cells (current behavior is acceptable); Flyout only opens when trades exist (already implemented)

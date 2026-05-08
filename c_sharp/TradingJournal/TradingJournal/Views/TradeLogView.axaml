@@ -95,9 +95,10 @@
             </StackPanel>
         </Grid>
 
-        <!-- Trade DataGrid -->
-        <DataGrid Grid.Row="1"
-                  x:Name="TradesGrid"
+        <!-- Trade DataGrid + empty state -->
+        <Panel Grid.Row="1">
+
+        <DataGrid x:Name="TradesGrid"
                   ItemsSource="{Binding FilteredTrades}"
                   SelectedItem="{Binding SelectedTrade}"
                   RowEditEnded="OnRowEditEnded"
@@ -236,6 +237,16 @@
 
             </DataGrid.Columns>
         </DataGrid>
+
+        <!-- Empty state — shown when the trade collection has no rows -->
+        <TextBlock Text="No trades yet — click Add Trade to get started"
+                   IsVisible="{Binding HasNoTrades}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontSize="15"
+                   Opacity="0.5"/>
+
+        </Panel>
 
     </Grid>
 

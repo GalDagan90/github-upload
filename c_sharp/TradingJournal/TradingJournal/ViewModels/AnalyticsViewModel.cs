@@ -72,6 +72,12 @@ public partial class AnalyticsViewModel : ViewModelBase
     /// <summary>Count of filtered closed/assigned trades.</summary>
     public int TotalTrades { get; private set; }
 
+    /// <summary>True when no closed/assigned trades match the current filters — drives the empty state message.</summary>
+    public bool HasNoTrades => TotalTrades == 0;
+
+    /// <summary>True when at least one closed/assigned trade matches — drives chart visibility.</summary>
+    public bool HasTrades => TotalTrades > 0;
+
     /// <summary>Formatted total P/L for display (e.g. "$1,234.56").</summary>
     public string TotalPLFormatted     => $"${TotalPL:N2}";
 
@@ -166,6 +172,8 @@ public partial class AnalyticsViewModel : ViewModelBase
         OnPropertyChanged(nameof(TotalPLFormatted));
         OnPropertyChanged(nameof(TotalGLFormatted));
         OnPropertyChanged(nameof(TotalTradesFormatted));
+        OnPropertyChanged(nameof(HasNoTrades));
+        OnPropertyChanged(nameof(HasTrades));
     }
 
     private void RefreshCharts(List<Trade> filtered)

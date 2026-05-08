@@ -94,8 +94,17 @@
 
             </StackPanel>
 
+            <!-- ── Empty state ── -->
+            <TextBlock Text="No closed trades match the current filters."
+                       IsVisible="{Binding HasNoTrades}"
+                       HorizontalAlignment="Center"
+                       FontSize="15"
+                       Opacity="0.5"
+                       Margin="0,24,0,0"/>
+
             <!-- ── Charts ── -->
-            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto"
+                  IsVisible="{Binding HasTrades}">
 
                 <!-- P/L by Ticker -->
                 <Border Grid.Row="0" Grid.Column="0"
