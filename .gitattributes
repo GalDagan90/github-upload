@@ -1,0 +1,15 @@
+# Normalize line endings on commit; check out as CRLF on Windows
+* text=auto eol=crlf
+
+# Force LF for shell scripts and config files that must not be CRLF
+*.sh    text eol=lf
+*.bash  text eol=lf
+
+# Binary files — no line-ending conversion
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.ico   binary
+*.db    binary
+*.exe   binary
+*.dll   binary

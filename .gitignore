@@ -12,6 +12,7 @@
 !*.md
 !/**/
 !.gitignore
+!.gitattributes
 !dummy.md
 !/**/makefile
 **/tests/*
